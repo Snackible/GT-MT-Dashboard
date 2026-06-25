@@ -32,10 +32,10 @@ html,body{background:var(--bg);color:var(--text);font-family:'Geist',system-ui,s
 .num{font-variant-numeric:tabular-nums}
 
 /* ===== HERO ===== */
-.hero{position:relative;height:100vh;width:100%;overflow:hidden;background:#000}
+.hero{position:relative; min-height:55vh; width:100%; overflow:hidden; background:#000; display:flex; flex-direction:column; justify-content:flex-end; padding-bottom:64px;}
 #particles{position:absolute;inset:0;width:100%;height:100%;z-index:1}
-.hero::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%,rgba(0,0,0,0) 0%,#000 75%);z-index:2;pointer-events:none}
-.hero-inner{position:relative;z-index:3;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.hero::after{content:""; position:absolute; inset:0; background:radial-gradient(ellipse at 30% 80%,rgba(0,0,0,0) 0%,#000 85%); z-index:2; pointer-events:none}
+.hero-inner{position:relative; z-index:3; max-width:1440px; margin:0 auto; width:100%; display:flex; flex-direction:column; align-items:flex-start; padding:140px 32px 0 32px;}
 
 /* nav pill */
 .nav{position:absolute;top:24px;left:50%;transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:6px;padding:6px;background:rgba(15,17,22,.65);backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);border:1px solid rgba(255,255,255,.08);border-radius:999px;box-shadow:0 8px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)}
@@ -51,13 +51,13 @@ html,body{background:var(--bg);color:var(--text);font-family:'Geist',system-ui,s
 .chip{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);font-size:12px;color:var(--text-1)}
 
 /* hero content */
-.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.18);font-size:12px;color:#C4B5FD;backdrop-filter:blur(8px);margin-bottom:24px;opacity:0;animation:fade .8s .2s forwards}
+.eyebrow{display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; background:rgba(167,139,250,.08); border:1px solid rgba(167,139,250,.18); font-size:12px; color:#C4B5FD; backdrop-filter:blur(8px); margin-bottom:20px; opacity:0; animation:fade .8s .2s forwards}
 .eyebrow svg{width:14px;height:14px}
-h1.title{font-size:clamp(48px,8vw,112px);font-weight:700;letter-spacing:-.04em;line-height:.95;text-align:center;background:linear-gradient(180deg,#fff 0%,#fff 40%,#7C8390 100%);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:20px;opacity:0;animation:fade .9s .35s forwards}
-.subtitle{max-width:640px;text-align:center;color:#9AA4B2;font-size:17px;line-height:1.55;margin-bottom:48px;opacity:0;animation:fade .9s .5s forwards}
+h1.title{font-size:clamp(40px,5vw,72px); font-weight:700; letter-spacing:-.04em; line-height:1; text-align:left; background:linear-gradient(180deg,#fff 0%,#fff 40%,#7C8390 100%); -webkit-background-clip:text; background-clip:text; color:transparent; margin-bottom:16px; opacity:0; animation:fade .9s .35s forwards}
+.subtitle{max-width:540px; text-align:left; color:#9AA4B2; font-size:16px; line-height:1.55; margin-bottom:32px; opacity:0; animation:fade .9s .5s forwards}
 @keyframes fade{to{opacity:1}}
 
-.hero-kpis{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;opacity:0;animation:fade .9s .65s forwards}
+.hero-kpis{display:flex; gap:14px; flex-wrap:wrap; justify-content:flex-start; opacity:0; animation:fade .9s .65s forwards}
 .hkpi{padding:18px 24px;background:rgba(15,17,22,.55);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:18px;min-width:200px;box-shadow:0 20px 60px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05)}
 .hkpi-label{font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
 .hkpi-row{display:flex;align-items:baseline;gap:10px}
@@ -65,10 +65,6 @@ h1.title{font-size:clamp(48px,8vw,112px);font-weight:700;letter-spacing:-.04em;l
 .delta{font-size:12px;font-weight:500;padding:3px 8px;border-radius:6px}
 .delta.up{background:rgba(52,211,153,.12);color:#6EE7B7}
 .delta.dn{background:rgba(248,113,113,.12);color:#FCA5A5}
-
-.scroll-cue{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);z-index:4;color:var(--text-2);font-size:11px;letter-spacing:.15em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;animation:fade 1s 1s forwards}
-.scroll-cue .bar{width:1px;height:24px;background:linear-gradient(180deg,transparent,#5C6573);animation:slide 1.8s ease-in-out infinite}
-@keyframes slide{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
 
 /* ===== DATA LAYER ===== */
 .data{background:var(--panel);padding:80px 32px 120px;border-top:1px solid var(--line-soft)}
@@ -165,7 +161,6 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 </head>
 <body>
 
-<!-- ============ HERO ============ -->
 <section class="hero">
   <canvas id="particles"></canvas>
 
@@ -200,17 +195,10 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
         <div class="hkpi-label">Reliance Stores Live</div>
         <div class="hkpi-row"><span class="hkpi-val num">85</span><span class="delta up">+12 QoQ</span></div>
       </div>
-      <div class="hkpi">
-        <div class="hkpi-label">PO Fill Rate</div>
-        <div class="hkpi-row"><span class="hkpi-val num">96.2%</span><span class="delta up">+1.4 pp</span></div>
-      </div>
     </div>
   </div>
-
-  <div class="scroll-cue"><span>Scroll</span><div class="bar"></div></div>
 </section>
 
-<!-- ============ DATA LAYER ============ -->
 <section class="data">
   <div class="shell">
 
@@ -228,7 +216,6 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
       </div>
     </div>
 
-    <!-- KPI strip -->
     <div class="grid row4">
       <div class="card">
         <div class="card-head"><span class="card-title">Net Sales</span><span class="card-meta">FY total</span></div>
@@ -267,7 +254,6 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 
     <div class="section-gap"></div>
 
-    <!-- Trend + Zone -->
     <div class="grid row2">
       <div class="card big">
         <h3>Monthly Sales Trend</h3>
@@ -279,26 +265,19 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
               <stop offset="1" stop-color="#22D3EE" stop-opacity="0"/>
             </linearGradient>
           </defs>
-          <!-- grid -->
           <g stroke="#1F2733" stroke-width="1">
             <line x1="0" y1="40" x2="720" y2="40"/>
             <line x1="0" y1="100" x2="720" y2="100"/>
             <line x1="0" y1="160" x2="720" y2="160"/>
             <line x1="0" y1="220" x2="720" y2="220"/>
           </g>
-          <!-- data: 11 months, max 124459 -->
-          <!-- 14533, 124459, 99024, 97522, 81930, 85866, 64975, 49497, 57039, 75472, 82153 -->
-          <!-- scale: y = 220 - (val/124459)*180 -->
           <path d="M 32,199 L 100,40 L 168,77 L 236,79 L 304,101 L 372,96 L 440,126 L 508,148 L 576,138 L 644,111 L 712,101 L 712,220 L 32,220 Z" fill="url(#area)"/>
           <path d="M 32,199 L 100,40 L 168,77 L 236,79 L 304,101 L 372,96 L 440,126 L 508,148 L 576,138 L 644,111 L 712,101" fill="none" stroke="#22D3EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- highlight last point -->
           <circle cx="712" cy="101" r="5" fill="#22D3EE"/>
           <circle cx="712" cy="101" r="10" fill="#22D3EE" opacity=".18"/>
-          <!-- x labels -->
           <g fill="#5C6573" font-size="10" font-family="Geist Mono" text-anchor="middle">
             <text x="32" y="236">Jul</text><text x="100" y="236">Aug</text><text x="168" y="236">Sep</text><text x="236" y="236">Oct</text><text x="304" y="236">Nov</text><text x="372" y="236">Dec</text><text x="440" y="236">Jan</text><text x="508" y="236">Feb</text><text x="576" y="236">Mar</text><text x="644" y="236">Apr</text><text x="712" y="236">May</text>
           </g>
-          <!-- y labels -->
           <g fill="#5C6573" font-size="10" font-family="Geist Mono">
             <text x="0" y="44">₹1.25L</text><text x="0" y="104">₹85K</text><text x="0" y="164">₹45K</text>
           </g>
@@ -321,7 +300,6 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 
     <div class="section-gap"></div>
 
-    <!-- SKU + Store -->
     <div class="grid row2b">
       <div class="card">
         <div class="card-head"><span class="card-title">Top SKUs · by value</span><span class="card-meta">11-mo cumulative</span></div>
@@ -386,7 +364,6 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 
     <div class="section-gap"></div>
 
-    <!-- Category + State -->
     <div class="grid row2b">
       <div class="card">
         <div class="card-head"><span class="card-title">Category Mix</span><span class="card-meta">by value</span></div>
@@ -439,7 +416,12 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
   let W,H,particles=[],raf;
   const mouse={x:null,y:null,r:160};
 
-  function size(){W=cvs.width=innerWidth;H=cvs.height=Math.max(innerHeight,window.visualViewport?.height||innerHeight);init()}
+  function size(){
+    const heroSection = document.querySelector('.hero');
+    W = cvs.width = window.innerWidth;
+    H = cvs.height = heroSection.offsetHeight; 
+    init();
+  }
   function init(){
     particles=[];
     const n=Math.min(140,Math.floor(W*H/11000));
@@ -488,6 +470,7 @@ document.querySelectorAll('.seg button').forEach(b=>{
 document.querySelectorAll('.fchip').forEach(b=>{
   b.addEventListener('click',()=>{document.querySelectorAll('.fchip').forEach(x=>x.classList.remove('on'));b.classList.add('on');});
 });
+
 // ===== Live Data Hydration =====
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Requesting data from Google Sheets...");
@@ -520,9 +503,6 @@ function updateDashboard(data) {
   if (stripSales) stripSales.innerText = data.kpis.netSalesFormatted;
   if (stripStores) stripStores.innerText = data.kpis.activeStores;
   if (stripVelocity) stripVelocity.innerText = data.kpis.avgVelocityFormatted;
-  
-  // Note: DOM elements are currently tied to index positions based on the static HTML structure.
-  // As we build out specific IDs (e.g., id="net-sales-val") for the widgets, we will bind the Zone, SKU, and Category arrays natively.
 }
 
 function handleError(err) {
