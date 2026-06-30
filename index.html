@@ -444,6 +444,13 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
           </div>
         </div>
 
+        <div class="b2b-grid b2b-row2" style="margin-bottom:16px">
+          <div class="b2b-card">
+            <div class="b2b-card-title">Sample tracking</div>
+            <div id="inbound-samples"></div>
+          </div>
+        </div>
+
         <div class="b2b-card" style="margin-bottom:16px">
           <div class="b2b-card-title">Performance by rep</div>
           <table class="b2b-table">
@@ -464,6 +471,9 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
           <div class="b2b-card-title">Live tracking and remarks</div>
           <div id="inbound-remarks" style="display:flex;flex-direction:column;"></div>
         </div>
+      </div>
+    </section>
+  </div>
 
 <script>
 // ===== Background Particles =====
@@ -682,10 +692,7 @@ function renderInboundFromFilters() {
     summaryEl.textContent = parts.length ? `Showing ${rows.length} of ${_inboundRows.length} leads · ${parts.join(' · ')}` : `Showing all ${rows.length} leads`;
   }
 }
-// Tab Switching
-function switchTab(view) {
-  window.currentTab = view;
-  document.getElementById('inbound-month-from')?.addEventListener('change', e => {
+document.getElementById('inbound-month-from')?.addEventListener('change', e => {
   _ibMonthFrom = e.target.value; renderInboundFromFilters();
 });
 document.getElementById('inbound-month-to')?.addEventListener('change', e => {
@@ -705,6 +712,10 @@ document.getElementById('inbound-reset-dates')?.addEventListener('click', () => 
   document.getElementById('inbound-date-to').value = "";
   renderInboundFromFilters();
 });
+
+// Tab Switching
+function switchTab(view) {
+  window.currentTab = view;
   // Toggle UI buttons
   const buttons = document.querySelectorAll('#dashboard-tabs button');
   buttons[0].classList.toggle('on', view === 'mt');
@@ -964,80 +975,26 @@ function renderInboundDashboard(data) {
       </div>`;
     }).join('');
   }
-}
-  // ===== Sample tracking =====
+
   const samplesEl = document.getElementById('inbound-samples');
   if (samplesEl) {
     const provided = kpi.samplesProvided || 0;
     const total = kpi.totalLeads || 1;
     const pct = ((provided / total) * 100).toFixed(2);
     samplesEl.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--line-soft)">
-        <span style="color:var(--text-1);font-size:15px">Samples sent</span>
-        <span style="color:var(--text);font-weight:600;font-size:22px">${provided}</span>
+      <div class="pbar-row">
+        <div class="pbar-head"><span>Samples sent</span><span>${provided}</span></div>
+        <div class="pbar-track"><div class="pbar-fill" style="width:${Math.max(pct,1.5)}%;background:var(--violet)"></div></div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:14px 0">
-        <span style="color:var(--text-1);font-size:15px">% of total leads</span>
-        <span style="color:var(--text);font-weight:600;font-size:22px">${pct}%</span>
+      <div class="pbar-row">
+        <div class="pbar-head"><span>% of total leads</span><span>${pct}%</span></div>
       </div>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft);font-size:12px;color:var(--text-2)">
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line-soft);font-size:11px;color:var(--text-2)">
         Sample data is sparse — most rows have this field unfilled. Treat as directional only.
       </div>`;
   }
-
-  // ===== Leaderboard with conversion rate =====
-  if (data.leadByPerformance) {
-    document.getElementById('inbound-leadby').innerHTML = data.leadByPerformance.map(rep => {
-      const hotBadge = rep.hot > 0 ? `<span style="color:var(--amber);margin-left:8px">· ${rep.hot} hot</span>` : '';
-      return `
-      <div class="list-row" style="padding:16px 8px">
-        <div>
-          <div class="list-title" style="font-size:16px">${rep.name}</div>
-          <div class="list-sub" style="font-size:13px;margin-top:3px">${rep.convRate}% conversion${hotBadge}</div>
-        </div>
-        <div style="font-size:14px; color:var(--text-1); text-align:right;">
-           <span style="color:var(--green);font-weight:500">${rep.converted} won</span>
-        </div>
-        <div class="list-val" style="font-size:16px">${rep.total} leads</div>
-      </div>`;
-    }).join('');
-  }
-
-  // ===== Top locations (unchanged) =====
-  if (data.topLocations) {
-    document.getElementById('inbound-locations').innerHTML = data.topLocations.map(loc => `
-      <div class="list-row" style="padding:16px 8px">
-        <div>
-          <div class="list-title" style="font-size:16px">${loc.place}</div>
-          <div class="list-sub" style="font-size:13px;margin-top:3px">Region</div>
-        </div>
-        <div style="font-size:14px; color:var(--text-1); text-align:right;">
-           ${loc.converted} won
-        </div>
-        <div class="list-val" style="font-size:16px">${loc.total} total</div>
-      </div>
-    `).join('');
-  }
-
-  // ===== Live activity feed (unchanged) =====
-  if (data.recentActivityLog) {
-    document.getElementById('inbound-remarks').innerHTML = data.recentActivityLog.map(log => {
-      let statusClass = '';
-      let statusLower = log.status.toLowerCase();
-      if (statusLower.includes('hot')) statusClass = 'hot';
-      if (statusLower.includes('converted')) statusClass = 'converted';
-      return `
-      <div class="feed-item">
-        <div class="feed-meta">
-          <span><strong>${log.leadBy}</strong> · ${log.location}</span>
-          <span class="feed-badge ${statusClass}">${log.status || 'Pending'}</span>
-        </div>
-        <div class="feed-text">"${log.remark || 'No remarks provided.'}"</div>
-      </div>
-      `;
-    }).join('');
-  }
 }
+  
 </script>
 </body>
 </html>
