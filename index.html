@@ -331,7 +331,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 
     <section class="data" style="padding-top:0;">
       <div class="shell">
-        <div class="grid row4">
+        <div class="grid" style="grid-template-columns:repeat(5,1fr)">
           <div class="card">
             <div class="card-head"><span class="card-title">Total Inbound</span><span class="card-meta">all time</span></div>
             <div class="kpi-val num" id="inbound-kpi-total">-</div>
@@ -343,9 +343,14 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
             <div class="kpi-sub">Needs immediate closure</div>
           </div>
           <div class="card">
-            <div class="card-head"><span class="card-title">Converted Leads</span><span class="card-meta">won</span></div>
+            <div class="card-head"><span class="card-title">Cold Leads</span><span class="card-meta">pipeline</span></div>
+            <div class="kpi-val num" id="inbound-kpi-cold" style="color: var(--text-2)">-</div>
+            <div class="kpi-sub">Disengaged or unresponsive</div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Converted</span><span class="card-meta">won</span></div>
             <div class="kpi-val num" id="inbound-kpi-converted" style="color: var(--green)">-</div>
-            <div class="kpi-sub">Fully onboarded partners</div>
+            <div class="kpi-sub" id="inbound-kpi-days">Fully onboarded partners</div>
           </div>
           <div class="card">
             <div class="card-head"><span class="card-title">Conversion Rate</span><span class="card-meta">efficiency</span></div>
@@ -356,11 +361,31 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 
         <div class="section-gap"></div>
 
+        <div class="grid" style="grid-template-columns:1fr">
+          <div class="card">
+            <div class="card-head"><span class="card-title">Pipeline funnel</span><span class="card-meta">by lead phase</span></div>
+            <div id="inbound-funnel" style="display:flex;height:32px;border-radius:8px;overflow:hidden;margin-top:8px"></div>
+            <div id="inbound-funnel-legend" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:var(--text-1)"></div>
+          </div>
+        </div>
+
+        <div class="section-gap"></div>
+
         <div class="grid row2b">
           <div class="card">
-            <div class="card-head"><span class="card-title">Sales Rep Leaderboard</span><span class="card-meta">by volume</span></div>
-            <div class="list-ui" id="inbound-leadby">
-              </div>
+            <div class="card-head"><span class="card-title">Source split</span><span class="card-meta">acquisition channel</span></div>
+            <div id="inbound-sources" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Sample tracking</span><span class="card-meta">conversion lever</span></div>
+            <div id="inbound-samples" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div>
+          </div>
+        </div>
+
+        <div class="grid row2b">
+          <div class="card">
+            <div class="card-head"><span class="card-title">Sales rep leaderboard</span><span class="card-meta">volume vs conversion</span></div>
+            <div class="list-ui" id="inbound-leadby" style="display:flex;flex-direction:column;gap:4px;margin-top:8px"></div>
           </div>
           <div class="card">
             <div class="card-head"><span class="card-title">Top Locations</span><span class="card-meta">state distribution</span></div>
@@ -615,28 +640,102 @@ document.querySelectorAll('.fchip').forEach(b => {
 // ===== INBOUND Dashboard Rendering =====
 function renderInboundDashboard(data) {
   if (data.error) { console.error("Backend Error:", data.error); return; }
-  
+
   const kpi = data.kpis;
   document.getElementById('inbound-kpi-total').innerText = (kpi.totalLeads || 0).toLocaleString();
   document.getElementById('inbound-kpi-hot').innerText = (kpi.hotLeads || 0).toLocaleString();
+  document.getElementById('inbound-kpi-cold').innerText = (kpi.coldLeads || 0).toLocaleString();
   document.getElementById('inbound-kpi-converted').innerText = (kpi.convertedLeads || 0).toLocaleString();
   document.getElementById('inbound-kpi-rate').innerText = kpi.conversionRate || "0%";
+  document.getElementById('inbound-kpi-days').innerText = kpi.avgDaysToConvert
+    ? `${kpi.avgDaysToConvert}d avg to close (n=${kpi.avgDaysToConvertSample})`
+    : "Fully onboarded partners";
 
+  // ===== Pipeline funnel =====
+  const funnelColors = {
+    "overdue": "#5C6573", "no follow-up scheduled": "#7C8390",
+    "converted": "#34D399", "cold": "#9AA4B2", "upcoming": "#22D3EE",
+    "not set": "#293345"
+  };
+  const statusList = data.statusBreakdown || [];
+  const funnelTotal = statusList.reduce((sum, s) => sum + s.count, 0) || 1;
+  const funnelEl = document.getElementById('inbound-funnel');
+  const funnelLegendEl = document.getElementById('inbound-funnel-legend');
+  if (funnelEl) {
+    funnelEl.innerHTML = statusList.map(s => {
+      const key = s.name.toLowerCase();
+      const col = funnelColors[key] || "#444B57";
+      const pct = (s.count / funnelTotal * 100).toFixed(0);
+      const label = pct > 6 ? `${s.name} ${s.count}` : '';
+      return `<div style="flex:${s.count};background:${col};display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden">${label}</div>`;
+    }).join('');
+  }
+  if (funnelLegendEl) {
+    funnelLegendEl.innerHTML = statusList.map(s => {
+      const key = s.name.toLowerCase();
+      const col = funnelColors[key] || "#444B57";
+      return `<span style="display:inline-flex;align-items:center;gap:6px"><i style="width:8px;height:8px;border-radius:2px;background:${col};display:inline-block"></i>${s.name} · ${s.count}</span>`;
+    }).join('');
+  }
+
+  // ===== Source split =====
+  const sourceIcons = { meta: "📱", shopify: "🛒", "customer care": "☎️" };
+  const sourcesEl = document.getElementById('inbound-sources');
+  if (sourcesEl && data.sourceBreakdown) {
+    const maxSource = Math.max(...data.sourceBreakdown.map(s => s.count));
+    sourcesEl.innerHTML = data.sourceBreakdown.map(s => {
+      const width = (s.count / maxSource * 100).toFixed(0);
+      return `<div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+          <span style="color:var(--text)">${s.name}</span>
+          <span style="color:var(--text-1)">${s.count}</span>
+        </div>
+        <div style="height:6px;background:var(--panel-2);border-radius:99px;overflow:hidden">
+          <div style="width:${width}%;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet));border-radius:99px"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ===== Sample tracking =====
+  const samplesEl = document.getElementById('inbound-samples');
+  if (samplesEl) {
+    const provided = kpi.samplesProvided || 0;
+    const total = kpi.totalLeads || 1;
+    const pct = ((provided / total) * 100).toFixed(2);
+    samplesEl.innerHTML = `
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:10px 0;border-bottom:1px solid var(--line-soft)">
+        <span style="color:var(--text-1)">Samples sent</span>
+        <span style="color:var(--text);font-weight:500">${provided}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:10px 0">
+        <span style="color:var(--text-1)">% of total leads</span>
+        <span style="color:var(--text);font-weight:500">${pct}%</span>
+      </div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-size:11px;color:var(--text-2)">
+        Sample data is sparse — most rows have this field unfilled. Treat as directional only.
+      </div>`;
+  }
+
+  // ===== Leaderboard with conversion rate =====
   if (data.leadByPerformance) {
-    document.getElementById('inbound-leadby').innerHTML = data.leadByPerformance.map(rep => `
+    document.getElementById('inbound-leadby').innerHTML = data.leadByPerformance.map(rep => {
+      const hotBadge = rep.hot > 0 ? `<span style="color:var(--amber);margin-left:8px">${rep.hot} hot</span>` : '';
+      return `
       <div class="list-row">
         <div>
           <div class="list-title">${rep.name}</div>
-          <div class="list-sub">Lead By</div>
+          <div class="list-sub">${rep.convRate}% conversion${hotBadge}</div>
         </div>
         <div style="font-size:12px; color:var(--text-1); text-align:right;">
            <span style="color:var(--green)">${rep.converted} won</span>
         </div>
         <div class="list-val">${rep.total} leads</div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   }
 
+  // ===== Top locations (unchanged) =====
   if (data.topLocations) {
     document.getElementById('inbound-locations').innerHTML = data.topLocations.map(loc => `
       <div class="list-row">
@@ -652,6 +751,7 @@ function renderInboundDashboard(data) {
     `).join('');
   }
 
+  // ===== Live activity feed (unchanged) =====
   if (data.recentActivityLog) {
     document.getElementById('inbound-remarks').innerHTML = data.recentActivityLog.map(log => {
       let statusClass = '';
