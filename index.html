@@ -32,7 +32,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Geist',system-ui,s
 .num{font-variant-numeric:tabular-nums}
 
 /* ===== GLOBAL & HERO ===== */
-.hero{position:relative; min-height:55vh; width:100%; overflow:visible; background:transparent; display:flex; flex-direction:column; justify-content:flex-end; padding-bottom:64px;}
+.hero{display:none;}
 #particles{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 .hero::after{content:""; position:absolute; inset:0; background:radial-gradient(ellipse at 30% 80%,rgba(0,0,0,0) 0%,rgba(0,0,0,.5) 85%); z-index:2; pointer-events:none}
 .hero-inner{position:relative; z-index:3; max-width:1440px; margin:0 auto; width:100%; display:flex; flex-direction:column; align-items:flex-start; padding:28px 32px 0 32px;}
@@ -225,27 +225,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
   <canvas id="particles"></canvas>
 
   <div id="view-mt">
-    <section class="hero">
-      <div class="hero-inner">
-        <div class="eyebrow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Live Retail Supply Chain OS
-        </div>
-        <h1 class="title">GT / MT Command<br/>Center</h1>
-        <p class="subtitle">Distributor routes, shelf compliance, SKU velocity and key-account ROI — fused into one operating surface.</p>
-
-        <div class="hero-kpis">
-          <div class="hkpi">
-            <div class="hkpi-label">Net Sales · LTM</div>
-            <div class="hkpi-row"><span class="hkpi-val num" id="hkpi-sales">Loading...</span><span class="delta up">+8.9% MoM</span></div>
-          </div>
-          <div class="hkpi">
-            <div class="hkpi-label">Reliance Stores Live</div>
-            <div class="hkpi-row"><span class="hkpi-val num" id="hkpi-stores">-</span><span class="delta up">+12 QoQ</span></div>
-          </div>
-        </div>
-      </div>
-    </section>
+    
 
     <section class="data">
       <div class="shell">
