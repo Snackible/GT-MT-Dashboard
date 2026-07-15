@@ -19,6 +19,7 @@
     <div class="nav-divider"></div>
     <div class="seg" id="dashboard-tabs">
       <button class="on" onclick="switchTab('mt')">Modern Trade</button>
+      <button onclick="switchTab('gt')">GT Sales</button>
       <button onclick="switchTab('inbound')">Inbound Leads</button>
     </div>
   </div>
@@ -164,6 +165,127 @@
     </section>
   </div>
 
+
+  <div id="view-gt" style="display:none;">
+    <section class="data">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <h2>General Trade · Sales Pipeline</h2>
+            <p id="gt-subtitle">FY 25–26 + FY 26–27 YTD</p>
+          </div>
+          <div class="filters" id="gt-fy-filters">
+            <button class="fchip on" data-fy="ALL">All FYs</button>
+            <button class="fchip" data-fy="FY25-26">FY 25-26</button>
+            <button class="fchip" data-fy="FY26-27">FY 26-27</button>
+          </div>
+        </div>
+
+        <div class="filters" style="margin-bottom:20px;flex-wrap:wrap;gap:8px;align-items:center">
+          <div style="display:flex;gap:6px;align-items:center;padding-right:10px;border-right:1px solid var(--line)">
+            <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">State</span>
+            <select id="gt-state-filter" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px">
+              <option value="ALL">All states</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;padding-right:10px;border-right:1px solid var(--line)">
+            <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Month</span>
+            <select id="gt-month-from" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px">
+              <option value="ALL">From</option>
+            </select>
+            <span style="color:var(--text-2);font-size:12px">→</span>
+            <select id="gt-month-to" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px">
+              <option value="ALL">To</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Date</span>
+            <input type="date" id="gt-date-from" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px;color-scheme:dark">
+            <span style="color:var(--text-2);font-size:12px">→</span>
+            <input type="date" id="gt-date-to" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px;color-scheme:dark">
+            <button class="fchip" id="gt-reset-filters" style="color:var(--text-2)">✕ Reset</button>
+          </div>
+          <span id="gt-filter-summary" style="font-size:12px;color:var(--text-2);margin-left:auto"></span>
+        </div>
+
+        <div class="grid row4" style="grid-template-columns:repeat(5,1fr)">
+          <div class="card">
+            <div class="card-head"><span class="card-title">Total Sales</span><span class="card-meta">combined</span></div>
+            <div class="kpi-val num" id="gt-kpi-sales">-</div>
+            <div class="kpi-sub" id="gt-kpi-sales-sub"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Orders</span><span class="card-meta">total</span></div>
+            <div class="kpi-val num" id="gt-kpi-orders">-</div>
+            <div class="kpi-sub" id="gt-kpi-orders-sub"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Unique Clients</span><span class="card-meta">all-time</span></div>
+            <div class="kpi-val num" id="gt-kpi-clients">-</div>
+            <div class="kpi-sub" id="gt-kpi-clients-sub"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Avg Order Value</span><span class="card-meta">per order</span></div>
+            <div class="kpi-val num" id="gt-kpi-aov">-</div>
+            <div class="kpi-sub" id="gt-kpi-aov-sub"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Repeat Clients</span><span class="card-meta">2+ orders</span></div>
+            <div class="kpi-val num" id="gt-kpi-repeat">-</div>
+            <div class="bar-fill" style="margin-top:14px"><div id="gt-repeat-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+
+        <div class="section-gap"></div>
+
+        <div class="grid row2">
+          <div class="card big">
+            <h3>Monthly Sales Trend</h3>
+            <div class="lead num" id="gt-trend-lead">-</div>
+            <svg id="gt-trend-svg" viewBox="0 0 720 200" width="100%" height="200" preserveAspectRatio="none" style="overflow:visible"></svg>
+            <div class="legend" id="gt-trend-legend"></div>
+          </div>
+          <div class="card big">
+            <h3>POC Performance</h3>
+            <div class="lead num" id="gt-poc-lead">-</div>
+            <div class="zonelist" id="gt-poc-bars"></div>
+          </div>
+        </div>
+
+        <div class="section-gap"></div>
+
+        <div class="grid row2b">
+          <div class="card">
+            <div class="card-head"><span class="card-title">Top Clients · by value</span><span class="card-meta">cumulative</span></div>
+            <div class="skulist" id="gt-top-clients"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Client Breakdown</span><span class="card-meta">repeat vs one-time</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px" id="gt-client-split"></div>
+            <div style="font-size:13px;color:var(--text-1);font-weight:500;margin-bottom:12px">Top repeat clients</div>
+            <div class="storelist" id="gt-repeat-list"></div>
+          </div>
+        </div>
+
+        <div class="section-gap"></div>
+
+        <div class="grid row2b">
+          <div class="card">
+            <div class="card-head"><span class="card-title">State Coverage</span><span class="card-meta">by address</span></div>
+            <table>
+              <thead><tr><th>State</th><th style="text-align:right">Orders</th><th style="text-align:right">Sales</th><th style="text-align:right">Clients</th></tr></thead>
+              <tbody id="gt-states-table"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Monthly Order Volume</span><span class="card-meta">count</span></div>
+            <div class="b2b-bar-chart" id="gt-monthly-chart" style="height:130px"></div>
+            <div class="b2b-bar-labels" id="gt-monthly-labels"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 
   <div id="view-inbound" style="display: none;">
     <section class="hero">
