@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Command Center · Snackible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="nav">
+    <div class="nav-brand">
+      <div class="dot" id="nav-dot"></div>
+      <div class="nav-brand-text">Command Center</div>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="seg" id="dashboard-tabs">
+      <button class="on" onclick="switchTab('mt')">Modern Trade</button>
+      <button onclick="switchTab('gt')">GT Sales</button>
+      <button onclick="switchTab('inbound')">Inbound Leads</button>
+    </div>
+  </div>
+
+  <canvas id="particles"></canvas>
+
+  <div id="view-mt">
+    <section class="data">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <h2>Modern Trade · Reliance Signature</h2>
+            <p>FY 25–26 + FY 26–27 YTD · 85 stores · 4 zones · 21 states</p>
+          </div>
+          <div class="filters">
+            <button class="fchip on">All zones</button>
+            <button class="fchip">West</button>
+            <button class="fchip">North</button>
+            <button class="fchip">South</button>
+            <button class="fchip">East</button>
+          </div>
+        </div>
+
+        <div class="grid row4">
+          <div class="card">
+            <div class="card-head"><span class="card-title">Net Sales</span><span class="card-meta">FY total</span></div>
+            <div class="kpi-val num" id="mt-kpi-sales">-</div>
+            <div class="kpi-sub"><span class="delta up">+23.4%</span> vs prior period</div>
+            <svg class="spark" viewBox="0 0 200 36" preserveAspectRatio="none">
+              <defs><linearGradient id="g1" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#22D3EE" stop-opacity=".4"/><stop offset="1" stop-color="#22D3EE" stop-opacity="0"/></linearGradient></defs>
+              <path d="M0,30 L20,28 L40,12 L60,18 L80,20 L100,16 L120,22 L140,28 L160,14 L180,10 L200,16 L200,36 L0,36 Z" fill="url(#g1)"/>
+              <path d="M0,30 L20,28 L40,12 L60,18 L80,20 L100,16 L120,22 L140,28 L160,14 L180,10 L200,16" fill="none" stroke="#22D3EE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Active Stores</span><span class="card-meta">target 100</span></div>
+            <div class="kpi-val num" id="mt-kpi-stores">-</div>
+            <div class="kpi-sub"><span class="delta up">+12</span> this quarter</div>
+            <div class="bar-fill"><div style="width:85%"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Avg Velocity / Store</span><span class="card-meta">monthly</span></div>
+            <div class="kpi-val num" id="mt-kpi-velocity">-</div>
+            <div class="kpi-sub"><span class="delta up">+4.1%</span> 3-mo trend</div>
+            <svg class="spark" viewBox="0 0 200 36" preserveAspectRatio="none">
+              <path d="M0,26 L25,24 L50,22 L75,18 L100,20 L125,16 L150,18 L175,14 L200,12" fill="none" stroke="#A78BFA" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">West Zone Share</span><span class="card-meta">concentration</span></div>
+            <div class="kpi-val num" id="mt-kpi-zonepct">-</div>
+            <div class="kpi-sub"><span class="delta dn">+3.1 pp</span> concentration risk</div>
+            <div class="bar-fill"><div style="width:62%;background:linear-gradient(90deg,#F472B6,#FBBF24)"></div></div>
+          </div>
+        </div>
+
+        <div class="section-gap"></div>
+
+        <div class="grid row2">
+          <div class="card big">
+            <h3>Monthly Sales Trend</h3>
+            <div class="lead num">₹8.32L <span style="font-size:13px;color:var(--text-1);font-weight:400">across 11 months</span></div>
+            <svg viewBox="0 0 720 240" width="100%" height="240" preserveAspectRatio="none" style="overflow:visible">
+              <defs>
+  <linearGradient id="area" x1="0" x2="0" y1="0" y2="1">
+    <stop offset="0" stop-color="#22D3EE" stop-opacity=".70"/>
+    <stop offset="1" stop-color="#22D3EE" stop-opacity=".05"/>
+  </linearGradient>
+  <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+    <feGaussianBlur stdDeviation="4" result="blur" />
+    <feMerge>
+      <feMergeNode in="blur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+</defs>
+              <g stroke="#1F2733" stroke-width="1">
+                <line x1="0" y1="40" x2="720" y2="40"/><line x1="0" y1="100" x2="720" y2="100"/><line x1="0" y1="160" x2="720" y2="160"/><line x1="0" y1="220" x2="720" y2="220"/>
+              </g>
+              <path d="M 32,199 L 100,40 L 168,77 L 236,79 L 304,101 L 372,96 L 440,126 L 508,148 L 576,138 L 644,111 L 712,101 L 712,220 L 32,220 Z" fill="url(#area)"/>
+              <path d="M 32,199 L 100,40 L 168,77 L 236,79 L 304,101 L 372,96 L 440,126 L 508,148 L 576,138 L 644,111 L 712,101" fill="none" stroke="#22D3EE" stroke-width="2" filter="url(#neon-glow)" stroke-linecap="round" stroke-linejoin="round"/>
+              <g class="data-points" fill="#22D3EE" stroke="#0B0F14" stroke-width="2" cursor="crosshair">
+                <circle cx="32" cy="199" r="6" data-val="₹14.5K" data-month="July"/>
+                <circle cx="100" cy="40" r="6" data-val="₹1.24L" data-month="August"/>
+                <circle cx="168" cy="77" r="6" data-val="₹99.0K" data-month="September"/>
+                <circle cx="236" cy="79" r="6" data-val="₹97.5K" data-month="October"/>
+                <circle cx="304" cy="101" r="6" data-val="₹81.9K" data-month="November"/>
+                <circle cx="372" cy="96" r="6" data-val="₹85.8K" data-month="December"/>
+                <circle cx="440" cy="126" r="6" data-val="₹64.9K" data-month="January"/>
+                <circle cx="508" cy="148" r="6" data-val="₹49.4K" data-month="February"/>
+                <circle cx="576" cy="138" r="6" data-val="₹57.0K" data-month="March"/>
+                <circle cx="644" cy="111" r="6" data-val="₹75.4K" data-month="April"/>
+                <circle cx="712" cy="101" r="6" data-val="₹82.1K" data-month="May"/>
+              </g>
+              <g fill="#5C6573" font-size="10" font-family="Geist Mono" text-anchor="middle">
+                <text x="32" y="236">Jul</text><text x="100" y="236">Aug</text><text x="168" y="236">Sep</text><text x="236" y="236">Oct</text><text x="304" y="236">Nov</text><text x="372" y="236">Dec</text><text x="440" y="236">Jan</text><text x="508" y="236">Feb</text><text x="576" y="236">Mar</text><text x="644" y="236">Apr</text><text x="712" y="236">May</text>
+              </g>
+              <g fill="#5C6573" font-size="10" font-family="Geist Mono">
+                <text x="0" y="44">₹1.25L</text><text x="0" y="104">₹85K</text><text x="0" y="164">₹45K</text>
+              </g>
+            </svg>
+            <div class="legend"><span><i style="background:#22D3EE"></i>Net sales</span></div>
+          </div>
+
+          <div class="card big">
+            <h3>Zone Distribution</h3>
+            <div class="lead num">4 zones</div>
+            <div class="zonelist" id="mt-zones">
+              </div>
+          </div>
+        </div>
+
+        <div class="section-gap"></div>
+
+        <div class="grid row2b">
+          <div class="card">
+            <div class="card-head"><span class="card-title">Top SKUs · by value</span><span class="card-meta">11-mo cumulative</span></div>
+            <div class="skulist" id="mt-skus"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Top Stores · by value</span><span class="card-meta">live</span></div>
+            <div class="storelist" id="mt-stores"></div>
+          </div>
+        </div>
+
+        <div class="section-gap"></div>
+
+        <div class="grid row2b">
+          <div class="card">
+            <div class="card-head"><span class="card-title">Category Mix</span><span class="card-meta">by value</span></div>
+            <div class="catbar" id="mt-catbar"></div>
+            <div class="catlegend" id="mt-catlegend"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">State Coverage</span><span class="card-meta">top states</span></div>
+            <table>
+              <thead><tr><th>State</th><th style="text-align:right">Stores</th><th style="text-align:right">Sales</th><th style="text-align:right">Velocity</th></tr></thead>
+              <tbody id="mt-states"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+
+  <div id="view-gt" style="display:none;">
+    <section class="data">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <h2>General Trade · Sales Pipeline</h2>
+            <p id="gt-subtitle">FY 25–26 + FY 26–27 YTD</p>
+          </div>
+          <div class="filters" id="gt-fy-filters">
+            <button class="fchip on" data-fy="ALL">All FYs</button>
+            <button class="fchip" data-fy="FY25-26">FY 25-26</button>
+            <button class="fchip" data-fy="FY26-27">FY 26-27</button>
+          </div>
+        </div>
+
+        <div class="filters" style="margin-bottom:20px;flex-wrap:wrap;gap:8px;align-items:center">
+          <div style="display:flex;gap:6px;align-items:center;padding-right:10px;border-right:1px solid var(--line)">
+            <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">State</span>
+            <select id="gt-state-filter" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px">
+              <option value="ALL">All states</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;padding-right:10px;border-right:1px solid var(--line)">
+            <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Month</span>
+            <select id="gt-month-from" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px">
+              <option value="ALL">From</option>
+            </select>
+            <span style="color:var(--text-2);font-size:12px">→</span>
+            <select id="gt-month-to" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px">
+              <option value="ALL">To</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Date</span>
+            <input type="date" id="gt-date-from" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px;color-scheme:dark">
+            <span style="color:var(--text-2);font-size:12px">→</span>
+            <input type="date" id="gt-date-to" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px;color-scheme:dark">
+            <button class="fchip" id="gt-reset-filters" style="color:var(--text-2)">✕ Reset</button>
+          </div>
+          <span id="gt-filter-summary" style="font-size:12px;color:var(--text-2);margin-left:auto"></span>
+        </div>
+
+        <div class="grid row4" style="grid-template-columns:repeat(5,1fr)">
+          <div class="card">
+            <div class="card-head"><span class="card-title">Total Sales</span><span class="card-meta">combined</span></div>
+            <div class="kpi-val num" id="gt-kpi-sales">-</div>
+            <div class="kpi-sub" id="gt-kpi-sales-sub"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Orders</span><span class="card-meta">total</span></div>
+            <div class="kpi-val num" id="gt-kpi-orders">-</div>
+            <div class="kpi-sub" id="gt-kpi-orders-sub"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Unique Clients</span><span class="card-meta">all-time</span></div>
+            <div class="kpi-val num" id="gt-kpi-clients">-</div>
+            <div class="kpi-sub" id="gt-kpi-clients-sub"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Avg Order Value</span><span class="card-meta">per order</span></div>
+            <div class="kpi-val num" id="gt-kpi-aov">-</div>
+            <div class="kpi-sub" id="gt-kpi-aov-sub"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Repeat Clients</span><span class="card-meta">2+ orders</span></div>
+            <div class="kpi-val num" id="gt-kpi-repeat">-</div>
+            <div class="bar-fill" style="margin-top:14px"><div id="gt-repeat-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+
+        <div class="section-gap"></div>
+
+        <div class="grid row2">
+          <div class="card big">
+            <h3>Monthly Sales Trend</h3>
+            <div class="lead num" id="gt-trend-lead">-</div>
+            <svg id="gt-trend-svg" viewBox="0 0 720 200" width="100%" height="200" preserveAspectRatio="none" style="overflow:visible"></svg>
+            <div class="legend" id="gt-trend-legend"></div>
+          </div>
+          <div class="card big">
+            <h3>POC Performance</h3>
+            <div class="lead num" id="gt-poc-lead">-</div>
+            <div class="zonelist" id="gt-poc-bars"></div>
+          </div>
+        </div>
+
+        <div class="section-gap"></div>
+
+        <div class="grid row2b">
+          <div class="card">
+            <div class="card-head"><span class="card-title">Top Clients · by value</span><span class="card-meta">cumulative</span></div>
+            <div class="skulist" id="gt-top-clients"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Client Breakdown</span><span class="card-meta">repeat vs one-time</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px" id="gt-client-split"></div>
+            <div style="font-size:13px;color:var(--text-1);font-weight:500;margin-bottom:12px">Top repeat clients</div>
+            <div class="storelist" id="gt-repeat-list"></div>
+          </div>
+        </div>
+
+        <div class="section-gap"></div>
+
+        <div class="grid row2b">
+          <div class="card">
+            <div class="card-head"><span class="card-title">State Coverage</span><span class="card-meta">by address</span></div>
+            <table>
+              <thead><tr><th>State</th><th style="text-align:right">Orders</th><th style="text-align:right">Sales</th><th style="text-align:right">Clients</th></tr></thead>
+              <tbody id="gt-states-table"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Monthly Order Volume</span><span class="card-meta">count</span></div>
+            <div class="b2b-bar-chart" id="gt-monthly-chart" style="height:130px"></div>
+            <div class="b2b-bar-labels" id="gt-monthly-labels"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="view-inbound" style="display: none;">
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="eyebrow inbound">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+          Lead Acquisition Engine
+        </div>
+        <h1 class="title">Inbound Pipeline<br/>Center</h1>
+        <p class="subtitle">Live tracking of Meta/Shopify leads, regional distribution, and conversion velocity.</p>
+      </div>
+    </section>
+
+    <section class="data" style="padding-top:80px;">
+      <div class="shell">
+        <div class="filters" style="margin-bottom:24px;flex-wrap:wrap;gap:8px;align-items:center">
+          <div style="display:flex;gap:6px;align-items:center;padding-right:10px;border-right:1px solid var(--line)">
+            <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Month</span>
+            <select id="inbound-month-from" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px">
+              <option value="ALL">From</option>
+            </select>
+            <span style="color:var(--text-2);font-size:12px">→</span>
+            <select id="inbound-month-to" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px">
+              <option value="ALL">To</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Or date range</span>
+            <input type="date" id="inbound-date-from" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px;color-scheme:dark">
+            <span style="color:var(--text-2);font-size:12px">→</span>
+            <input type="date" id="inbound-date-to" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px;color-scheme:dark">
+            <button class="fchip" id="inbound-reset-dates" style="color:var(--text-2)">✕ Reset</button>
+          </div>
+          <span id="inbound-filter-summary" style="font-size:12px;color:var(--text-2);margin-left:auto"></span>
+        </div>
+
+        <div class="kpi-strip" id="inbound-kpi-strip">
+          <div class="kpi-strip-cell" style="border-top:2px solid var(--line)">
+            <div class="kpi-strip-label">Total inbound</div>
+            <div class="kpi-strip-val" id="inbound-kpi-total">-</div>
+          </div>
+          <div class="kpi-strip-cell" style="border-top:2px solid var(--amber)">
+            <div class="kpi-strip-label">Hot leads</div>
+            <div class="kpi-strip-val" id="inbound-kpi-hot">-</div>
+          </div>
+          <div class="kpi-strip-cell" style="border-top:2px solid var(--line)">
+            <div class="kpi-strip-label">Cold leads</div>
+            <div class="kpi-strip-val" id="inbound-kpi-cold">-</div>
+          </div>
+          <div class="kpi-strip-cell" style="border-top:2px solid var(--green)">
+            <div class="kpi-strip-label">Converted</div>
+            <div class="kpi-strip-val" id="inbound-kpi-converted">-</div>
+          </div>
+          <div class="kpi-strip-cell" style="border-top:2px solid var(--cyan)">
+            <div class="kpi-strip-label">Conv. rate</div>
+            <div class="kpi-strip-val" id="inbound-kpi-rate">-</div>
+          </div>
+        </div>
+
+        <div class="b2b-grid b2b-row2" style="margin-bottom:16px">
+          <div class="b2b-card">
+            <div class="b2b-card-title">Pipeline funnel</div>
+            <div class="stat-blocks" id="inbound-funnel-blocks"></div>
+            <div id="inbound-funnel-bars"></div>
+          </div>
+          <div class="b2b-card">
+            <div class="b2b-card-title">Monthly lead volume</div>
+            <div class="b2b-bar-chart" id="inbound-monthly-chart"></div>
+            <div class="b2b-bar-labels" id="inbound-monthly-labels"></div>
+          </div>
+        </div>
+
+        <div class="b2b-grid b2b-row2" style="margin-bottom:16px">
+          <div class="b2b-card">
+            <div class="b2b-card-title">Source split</div>
+            <div id="inbound-sources"></div>
+          </div>
+          <div class="b2b-card">
+            <div class="b2b-card-title">Follow-up urgency</div>
+            <div id="inbound-urgency"></div>
+          </div>
+        </div>
+
+        <div class="b2b-grid b2b-row2" style="margin-bottom:16px">
+          <div class="b2b-card">
+            <div class="b2b-card-title">Sample tracking</div>
+            <div id="inbound-samples"></div>
+          </div>
+        </div>
+
+        <div class="b2b-card" style="margin-bottom:16px">
+          <div class="b2b-card-title">Performance by rep</div>
+          <table class="b2b-table">
+            <thead><tr><th>Rep</th><th class="num">Leads</th><th class="num">Won</th><th class="num">Conv. rate</th></tr></thead>
+            <tbody id="inbound-leadby"></tbody>
+          </table>
+        </div>
+
+        <div class="b2b-card" style="margin-bottom:16px">
+          <div class="b2b-card-title">Performance by location</div>
+          <table class="b2b-table">
+            <thead><tr><th>Region</th><th class="num">Total</th><th class="num">Won</th></tr></thead>
+            <tbody id="inbound-locations"></tbody>
+          </table>
+        </div>
+
+        <div class="b2b-card">
+          <div class="b2b-card-title">Remarks breakdown <span id="inbound-remarks-total" style="font-size:12px;font-weight:400;color:var(--text-2)"></span></div>
+          <div id="inbound-remarks-bar" style="display:flex;height:24px;border-radius:6px;overflow:hidden;margin-bottom:12px"></div>
+          <div id="inbound-remarks-bars" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px" id="inbound-remarks-pills"></div>
+          <div id="inbound-remarks-feed" style="border:1px solid var(--line);border-radius:6px;overflow:hidden"></div>
+        </div>
+      </div>
+</section>
+  </div>
+
+  <div id="chart-tooltip" style="position:absolute; opacity:0; background:#11161F; border:1px solid #1F2733; padding:10px 14px; border-radius:10px; font-size:12px; color:#fff; pointer-events:none; transition:opacity 0.15s ease; box-shadow:0 8px 24px rgba(0,0,0,0.6); z-index:1000; font-family:'Geist', sans-serif;"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
