@@ -505,6 +505,32 @@ function renderMtDashboard(data, zoneFilter) {
     }).join('');
   }
 
+  // Monthly horizontal bar chart
+  const hbarEl = document.getElementById("mt-monthly-hbar");
+  if (hbarEl && data.monthly && data.monthly.length > 0) {
+    const maxMonthSales = Math.max(...data.monthly.map(m => m.sales));
+    const monthLabels = {
+      "2025-07":"Jul 25","2025-08":"Aug 25","2025-09":"Sep 25","2025-10":"Oct 25",
+      "2025-11":"Nov 25","2025-12":"Dec 25","2026-01":"Jan 26","2026-02":"Feb 26",
+      "2026-03":"Mar 26","2026-04":"Apr 26","2026-05":"May 26","2026-06":"Jun 26",
+      "2026-07":"Jul 26"
+    };
+    hbarEl.innerHTML = data.monthly.map(m => {
+      const pct = (m.sales / maxMonthSales * 100).toFixed(1);
+      const val = m.sales >= 100000
+        ? "₹" + (m.sales/100000).toFixed(2) + "L"
+        : "₹" + Math.round(m.sales).toLocaleString("en-IN");
+      const label = monthLabels[m.month] || m.month;
+      return `<div style="display:grid;grid-template-columns:54px 1fr 80px;align-items:center;gap:10px">
+        <span style="font-size:11px;color:var(--text-2);text-align:right">${label}</span>
+        <div style="height:8px;background:var(--panel-2);border-radius:99px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#22D3EE,#67E8F9);border-radius:99px;transition:width .4s"></div>
+        </div>
+        <span style="font-size:12px;color:var(--text-1);font-variant-numeric:tabular-nums">${val}</span>
+      </div>`;
+    }).join("");
+  }
+
   // States Table
   const statusColor = (v, stores) => {
     const vel = v.sales / (stores || 1);
