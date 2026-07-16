@@ -477,47 +477,105 @@ function renderMtDashboard(data, zoneFilter) {
     }).join('');
   }
 
-  // Stores with sparklines
+  // Stores with sparklines + tooltip
   if (filteredStores2) {
     const allMonths = data.monthly ? data.monthly.map(m => m.month) : [];
+    const MONTH_LABELS = {
+      "2025-07":"Jul 25","2025-08":"Aug 25","2025-09":"Sep 25","2025-10":"Oct 25",
+      "2025-11":"Nov 25","2025-12":"Dec 25","2026-01":"Jan 26","2026-02":"Feb 26",
+      "2026-03":"Mar 26","2026-04":"Apr 26","2026-05":"May 26","2026-06":"Jun 26",
+      "2026-07":"Jul 26"
+    };
+
+    const W = 240, H = 36, pad = 4;
 
     document.getElementById('mt-stores').innerHTML = filteredStores2.map((s, idx) => {
       const val = s.sales >= 100000 ? "₹"+(s.sales/100000).toFixed(2)+"L" : "₹"+Math.round(s.sales).toLocaleString('en-IN');
-      const cap = s.name.replace(/\b(\w)/g,c=>c.toUpperCase()).slice(0,28);
+      const cap = s.name.replace(/\b(\w)/g,c=>c.toUpperCase()).slice(0,40);
       const zone = s.zone ? s.zone.charAt(0)+s.zone.slice(1).toLowerCase() : '';
-
-      // Build sparkline SVG
       const monthly = s.monthly || {};
       const months = allMonths.length > 0 ? allMonths : Object.keys(monthly).sort();
       const vals = months.map(m => monthly[m] || 0);
       const maxV = Math.max(...vals, 1);
-      const W = 80, H = 24, pad = 2;
       const step = months.length > 1 ? (W - pad*2) / (months.length - 1) : 0;
-      const pts = vals.map((v, i) => {
-        const x = pad + i * step;
-        const y = pad + (H - pad*2) - (v / maxV) * (H - pad*2);
-        return `${x},${y}`;
-      });
-      const hasData = vals.some(v => v > 0);
-      const trend = vals.length > 1 ? vals[vals.length-1] - vals[vals.length-2] : 0;
+      const pts = vals.map((v, i) => ({
+        x: pad + i * step,
+        y: pad + (H - pad*2) - (v / maxV) * (H - pad*2),
+        val: v,
+        month: months[i]
+      }));
+
+      const lastVal = vals[vals.length-1];
+      const prevVal = vals[vals.length-2] || 0;
+      const trend = lastVal - prevVal;
       const trendCol = trend > 0 ? '#34D399' : trend < 0 ? '#F87171' : '#5C6573';
+      const trendLabel = trend > 0 ? '↑ trending' : trend < 0 ? '↓ declining' : '→ flat';
 
-      const sparkline = hasData && pts.length > 1
-        ? `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="overflow:visible">
-            <polyline points="${pts.join(' ')}" fill="none" stroke="${trendCol}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
-            <circle cx="${pts[pts.length-1].split(',')[0]}" cy="${pts[pts.length-1].split(',')[1]}" r="2.5" fill="${trendCol}"/>
-          </svg>`
-        : `<span style="font-size:10px;color:var(--text-2)">no data</span>`;
+      const polyPts = pts.map(p => `${p.x},${p.y}`).join(' ');
 
-      return `<div style="display:grid;grid-template-columns:1fr ${W}px 70px;align-items:center;gap:12px;padding:12px 8px;border-bottom:1px solid var(--line-soft)">
-        <div>
-          <div style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cap}</div>
-          <div style="font-size:11px;color:var(--text-2);margin-top:2px">${s.state} · ${zone}</div>
+      // Invisible hover zones + visible dots per data point
+      const circles = pts.map((p, i) => {
+        const prev = vals[i-1] || 0;
+        const pct = prev > 0 ? (((p.val - prev) / prev) * 100).toFixed(1) : null;
+        const pctStr = pct !== null ? (pct >= 0 ? `+${pct}%` : `${pct}%`) : 'first month';
+        const pctCol = pct === null ? '#9AA4B2' : pct >= 0 ? '#34D399' : '#F87171';
+        const fmtVal = p.val >= 100000 ? "₹"+(p.val/100000).toFixed(2)+"L" : "₹"+Math.round(p.val).toLocaleString('en-IN');
+        const label = MONTH_LABELS[p.month] || p.month;
+        return `<circle
+          cx="${p.x}" cy="${p.y}" r="10"
+          fill="transparent"
+          class="spark-dot"
+          data-month="${label}"
+          data-val="${fmtVal}"
+          data-pct="${pctStr}"
+          data-pct-col="${pctCol}"
+          data-store="${idx}"
+        />
+        <circle cx="${p.x}" cy="${p.y}" r="2.5" fill="${trendCol}" opacity="0.6" pointer-events="none"/>`;
+      }).join('');
+
+      return `<div style="padding:14px 0;border-bottom:1px solid #161C25">
+        <div style="display:grid;grid-template-columns:1fr 90px;gap:12px;align-items:start">
+          <div>
+            <div style="font-size:13px;color:#F5F7FA;font-weight:500;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cap}</div>
+            <div style="font-size:11px;color:#5C6573;margin-bottom:8px">${s.state} · ${zone}</div>
+            <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="overflow:visible;display:block">
+              <polyline points="${polyPts}" fill="none" stroke="${trendCol}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              ${circles}
+            </svg>
+          </div>
+          <div style="text-align:right;padding-top:2px">
+            <div style="font-size:15px;font-weight:600;color:#F5F7FA">${val}</div>
+            <div style="font-size:11px;color:${trendCol};margin-top:4px">${trendLabel}</div>
+          </div>
         </div>
-        <div style="display:flex;align-items:center">${sparkline}</div>
-        <div style="font-size:13px;font-weight:500;color:var(--text);text-align:right;font-variant-numeric:tabular-nums">${val}</div>
       </div>`;
-    }).join('') + `<div style="padding:10px 8px;font-size:11px;color:var(--text-2)">Sparkline = MoM trend · dot color = last month vs prior</div>`;
+    }).join('');
+
+    // Tooltip
+    const tip = document.createElement('div');
+    tip.id = 'spark-tip';
+    tip.style.cssText = 'position:fixed;display:none;background:#11161F;border:1px solid #1F2733;border-radius:10px;padding:10px 14px;font-size:12px;color:#F5F7FA;pointer-events:none;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.6);font-family:system-ui,sans-serif;min-width:120px';
+    document.body.appendChild(tip);
+
+    document.getElementById('mt-stores').addEventListener('mousemove', function(e) {
+      const dot = e.target.closest('.spark-dot');
+      if (!dot) { tip.style.display = 'none'; return; }
+      const month = dot.dataset.month;
+      const val = dot.dataset.val;
+      const pct = dot.dataset.pct;
+      const col = dot.dataset.pctCol;
+      tip.innerHTML = `<div style="font-size:11px;color:#9AA4B2;margin-bottom:4px">${month}</div>
+        <div style="font-size:16px;font-weight:600;margin-bottom:6px">${val}</div>
+        <div style="font-size:12px;color:${col};font-weight:500">${pct} vs prior month</div>`;
+      tip.style.display = 'block';
+      tip.style.left = (e.clientX + 14) + 'px';
+      tip.style.top = (e.clientY - 40) + 'px';
+    });
+
+    document.getElementById('mt-stores').addEventListener('mouseleave', function() {
+      tip.style.display = 'none';
+    });
   }
 
   // Categories
