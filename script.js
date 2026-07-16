@@ -73,17 +73,34 @@ let _inboundLoaded = false;
 let _mtMonths = "ALL";
 let _mtZone = "ALL";
 
-const MT_FY_MONTHS = {
-  "ALL": "ALL",
-  "FY25-26": "2025-07,2025-08,2025-09,2025-10,2025-11,2025-12,2026-01,2026-02,2026-03",
-  "FY26-27": "2026-04,2026-05,2026-06,2026-07,2026-08,2026-09,2026-10,2026-11,2026-12"
-};
-
-const MT_Q_MONTHS = {
-  "Q1": "2025-07,2025-08,2025-09",
-  "Q2": "2025-10,2025-11,2025-12",
-  "Q3": "2026-01,2026-02,2026-03",
-  "Q4": "2026-04,2026-05,2026-06"
+const MT_PERIOD_OPTIONS = {
+  yearly: [
+    { label: "FY 25-26", value: "2025-07,2025-08,2025-09,2025-10,2025-11,2025-12,2026-01,2026-02,2026-03" },
+    { label: "FY 26-27", value: "2026-04,2026-05,2026-06,2026-07,2026-08,2026-09,2026-10,2026-11,2026-12" }
+  ],
+  quarterly: [
+    { label: "Q1 Jul–Sep 25", value: "2025-07,2025-08,2025-09" },
+    { label: "Q2 Oct–Dec 25", value: "2025-10,2025-11,2025-12" },
+    { label: "Q3 Jan–Mar 26", value: "2026-01,2026-02,2026-03" },
+    { label: "Q4 Apr–Jun 26", value: "2026-04,2026-05,2026-06" },
+    { label: "Q1 Jul–Sep 26", value: "2026-07,2026-08,2026-09" },
+    { label: "Q2 Oct–Dec 26", value: "2026-10,2026-11,2026-12" }
+  ],
+  monthly: [
+    { label: "Jul 25", value: "2025-07" },
+    { label: "Aug 25", value: "2025-08" },
+    { label: "Sep 25", value: "2025-09" },
+    { label: "Oct 25", value: "2025-10" },
+    { label: "Nov 25", value: "2025-11" },
+    { label: "Dec 25", value: "2025-12" },
+    { label: "Jan 26", value: "2026-01" },
+    { label: "Feb 26", value: "2026-02" },
+    { label: "Mar 26", value: "2026-03" },
+    { label: "Apr 26", value: "2026-04" },
+    { label: "May 26", value: "2026-05" },
+    { label: "Jun 26", value: "2026-06" },
+    { label: "Jul 26", value: "2026-07" }
+  ]
 };
 
 function fetchMtData(months) {
@@ -98,43 +115,48 @@ function fetchMtData(months) {
     .catch(err => console.error("MT Load Failed:", err));
 }
 
+function updatePeriodValueDropdown(type) {
+  const wrap = document.getElementById("mt-period-value-wrap");
+  const label = document.getElementById("mt-period-value-label");
+  const sel = document.getElementById("mt-period-value");
+
+  if (type === "all") {
+    wrap.style.display = "none";
+    _mtMonths = "ALL";
+    fetchMtData("ALL");
+    return;
+  }
+
+  wrap.style.display = "flex";
+  label.textContent = type === "yearly" ? "Year" : type === "quarterly" ? "Quarter" : "Month";
+
+  const opts = MT_PERIOD_OPTIONS[type] || [];
+  sel.innerHTML = opts.map(o => `<option value="${o.value}">${o.label}</option>`).join("");
+  _mtMonths = opts[0]?.value || "ALL";
+  fetchMtData(_mtMonths);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   fetchMtData("ALL");
 
-  // FY chips
-  document.querySelectorAll("#mt-fy-chips .fchip").forEach(b => {
-    b.addEventListener("click", () => {
-      document.querySelectorAll("#mt-fy-chips .fchip").forEach(x => x.classList.remove("on"));
-      document.querySelectorAll("#mt-q-chips .fchip").forEach(x => x.classList.remove("on"));
-      document.querySelectorAll("#mt-month-chips .fchip").forEach(x => x.classList.remove("on"));
-      b.classList.add("on");
-      _mtMonths = MT_FY_MONTHS[b.dataset.fy] || "ALL";
-      fetchMtData(_mtMonths);
-    });
+  // Hide value dropdown initially
+  document.getElementById("mt-period-value-wrap").style.display = "none";
+
+  // Period type dropdown
+  document.getElementById("mt-period-type").addEventListener("change", function() {
+    updatePeriodValueDropdown(this.value);
   });
 
-  // Quarter chips
-  document.querySelectorAll("#mt-q-chips .fchip").forEach(b => {
-    b.addEventListener("click", () => {
-      document.querySelectorAll("#mt-fy-chips .fchip").forEach(x => x.classList.remove("on"));
-      document.querySelectorAll("#mt-q-chips .fchip").forEach(x => x.classList.remove("on"));
-      document.querySelectorAll("#mt-month-chips .fchip").forEach(x => x.classList.remove("on"));
-      b.classList.add("on");
-      _mtMonths = MT_Q_MONTHS[b.dataset.q] || "ALL";
-      fetchMtData(_mtMonths);
-    });
+  // Period value dropdown
+  document.getElementById("mt-period-value").addEventListener("change", function() {
+    _mtMonths = this.value;
+    fetchMtData(_mtMonths);
   });
 
-  // Individual month chips (multi-select)
-  document.querySelectorAll("#mt-month-chips .fchip").forEach(b => {
-    b.addEventListener("click", () => {
-      document.querySelectorAll("#mt-fy-chips .fchip").forEach(x => x.classList.remove("on"));
-      document.querySelectorAll("#mt-q-chips .fchip").forEach(x => x.classList.remove("on"));
-      b.classList.toggle("on");
-      const selected = [...document.querySelectorAll("#mt-month-chips .fchip.on")].map(x => x.dataset.m);
-      _mtMonths = selected.length > 0 ? selected.join(",") : "ALL";
-      fetchMtData(_mtMonths);
-    });
+  // Zone dropdown
+  document.getElementById("mt-zone-select").addEventListener("change", function() {
+    _mtZone = this.value;
+    if (_mtCachedData) renderMtDashboard(_mtCachedData, _mtZone);
   });
 });
 // ===== Inbound date filtering state =====
@@ -497,17 +519,7 @@ function renderMtDashboard(data, zoneFilter) {
   }
 }
 
-// MT Zone Filter
-document.querySelectorAll("#mt-zone-chips .fchip").forEach(b => {
-  b.addEventListener("click", () => {
-    if (!_mtCachedData) return;
-    document.querySelectorAll("#mt-zone-chips .fchip").forEach(x => x.classList.remove("on"));
-    b.classList.add("on");
-    const label = b.textContent.trim().toUpperCase();
-    _mtZone = label === "ALL ZONES" ? "ALL" : label;
-    renderMtDashboard(_mtCachedData, _mtZone);
-  });
-});
+// Zone handled by dropdown above
 // ===== INBOUND Dashboard Rendering =====
 function renderInboundDashboard(data) {
   if (data.error) { console.error("Backend Error:", data.error); return; }
