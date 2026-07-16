@@ -35,40 +35,31 @@
             <p>FY 25–26 + FY 26–27 YTD · 85 stores · 4 zones · 21 states</p>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px">
-            <div class="filters" id="mt-fy-chips">
-              <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;align-self:center">FY</span>
-              <button class="fchip on" data-fy="ALL">All time</button>
-              <button class="fchip" data-fy="FY25-26">FY 25-26</button>
-              <button class="fchip" data-fy="FY26-27">FY 26-27</button>
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <span style="font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Period</span>
+              <select id="mt-period-type" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:8px 12px;min-width:130px">
+                <option value="all">All time</option>
+                <option value="yearly">By year</option>
+                <option value="quarterly">By quarter</option>
+                <option value="monthly">By month</option>
+              </select>
             </div>
-            <div class="filters" id="mt-q-chips">
-              <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;align-self:center">QTR</span>
-              <button class="fchip" data-q="Q1">Q1 Jul–Sep</button>
-              <button class="fchip" data-q="Q2">Q2 Oct–Dec</button>
-              <button class="fchip" data-q="Q3">Q3 Jan–Mar</button>
-              <button class="fchip" data-q="Q4">Q4 Apr–Jun</button>
+            <div style="display:flex;flex-direction:column;gap:4px" id="mt-period-value-wrap">
+              <span style="font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em" id="mt-period-value-label">Value</span>
+              <select id="mt-period-value" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:8px 12px;min-width:150px">
+                <option value="ALL">All</option>
+              </select>
             </div>
-            <div class="filters" id="mt-month-chips">
-              <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;align-self:center">MON</span>
-              <button class="fchip" data-m="2025-07">Jul</button>
-              <button class="fchip" data-m="2025-08">Aug</button>
-              <button class="fchip" data-m="2025-09">Sep</button>
-              <button class="fchip" data-m="2025-10">Oct</button>
-              <button class="fchip" data-m="2025-11">Nov</button>
-              <button class="fchip" data-m="2025-12">Dec</button>
-              <button class="fchip" data-m="2026-01">Jan</button>
-              <button class="fchip" data-m="2026-02">Feb</button>
-              <button class="fchip" data-m="2026-03">Mar</button>
-              <button class="fchip" data-m="2026-04">Apr</button>
-              <button class="fchip" data-m="2026-05">May</button>
-            </div>
-            <div class="filters" id="mt-zone-chips">
-              <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;align-self:center">ZONE</span>
-              <button class="fchip on">All zones</button>
-              <button class="fchip">West</button>
-              <button class="fchip">North</button>
-              <button class="fchip">South</button>
-              <button class="fchip">East</button>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <span style="font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Zone</span>
+              <select id="mt-zone-select" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:8px 12px;min-width:130px">
+                <option value="ALL">All zones</option>
+                <option value="WEST">West</option>
+                <option value="NORTH">North</option>
+                <option value="SOUTH">South</option>
+                <option value="EAST">East</option>
+              </select>
             </div>
           </div>
         </div>
