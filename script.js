@@ -693,6 +693,33 @@ function renderInboundDashboard(data) {
     labelsEl.innerHTML = months.map(m => `<span class="b2b-bar-label">${monthLabels[m.month]||m.month}</span>`).join('');
   }
 
+  // Monthly conversion volume chart
+  const convByMonth = {};
+  rows.forEach(r => {
+    const m = r[IB_RI.month];
+    const phase = String(r[IB_RI.phase] || '').toLowerCase();
+    const status = String(r[IB_RI.status] || '').toLowerCase();
+    if (!m) return;
+    if (!convByMonth[m]) convByMonth[m] = 0;
+    if (phase.includes('converted') || status.includes('converted')) convByMonth[m]++;
+  });
+
+  const convMonths = Object.keys(convByMonth).sort().map(m => ({ month: m, count: convByMonth[m] }));
+  const maxConv = Math.max(...convMonths.map(m => m.count), 1);
+
+  const convChartEl = document.getElementById('inbound-conv-chart');
+  const convLabelsEl = document.getElementById('inbound-conv-labels');
+  if (convChartEl) {
+    convChartEl.innerHTML = convMonths.map(m => {
+      const h = Math.max((m.count / maxConv) * 130, 4);
+      const isPeak = m.count === maxConv;
+      return `<div class="b2b-bar-col"><span class="b2b-bar-val">${m.count}</span><div class="b2b-bar ${isPeak ? 'peak' : ''}" style="height:${h}px;background:#34D399"></div></div>`;
+    }).join('');
+  }
+  if (convLabelsEl) {
+    convLabelsEl.innerHTML = convMonths.map(m => `<span class="b2b-bar-label">${monthLabels[m.month] || m.month}</span>`).join('');
+  }
+
   const sourcesEl = document.getElementById('inbound-sources');
   if (sourcesEl && data.sourceBreakdown) {
     const totalSrc = data.sourceBreakdown.reduce((a,s)=>a+s.count,0) || 1;
