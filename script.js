@@ -1158,6 +1158,8 @@ function initGtFilters() {
   var months = Object.keys(monthSet).sort();
   var fromSel = document.getElementById("gt-month-from");
   var toSel = document.getElementById("gt-month-to");
+  fromSel.innerHTML = '<option value="ALL">From</option>';
+  toSel.innerHTML = '<option value="ALL">To</option>';
   months.forEach(function(m) {
     var label = GT_MONTH_LABELS[m] || m;
     fromSel.innerHTML += '<option value="' + m + '">' + label + '</option>';
