@@ -244,10 +244,17 @@ function aggregateInbound(rows) {
     .sort((a,b) => b.total - a.total).slice(0,10);
 
   const monthVolume = {};
-  rows.forEach(r => {
-    const m = r[IB_RI.month];
-    if (m) monthVolume[m] = (monthVolume[m] || 0) + 1;
-  });
+    const monthConverted = {};
+    rows.forEach(r => {
+      const m = r[IB_RI.month];
+      if (!m) return;
+      monthVolume[m] = (monthVolume[m] || 0) + 1;
+      const phase = String(r[IB_RI.phase] || '').toLowerCase();
+      const status = String(r[IB_RI.status] || '').toLowerCase();
+      if (phase.includes('converted') || status.includes('converted')) {
+        monthConverted[m] = (monthConverted[m] || 0) + 1;
+      }
+    });
 
   const today = new Date().toISOString().slice(0,10);
   let overdue90 = 0, overdue30 = 0, overdueUnder30 = 0, upcoming = 0;
@@ -309,7 +316,7 @@ function aggregateInbound(rows) {
     topLocations: sortedLocations,
     remarksBreakdown,
     remarksRaw,
-    monthlyVolume: Object.keys(monthVolume).sort().map(m => ({ month: m, count: monthVolume[m] })),
+    monthlyVolume: Object.keys(monthVolume).sort().map(m => ({ month: m, count: monthVolume[m], converted: monthConverted[m] || 0 })),
     urgency: { overdue90, overdue30, overdueUnder30, upcoming }
   };
 }
@@ -693,20 +700,9 @@ function renderInboundDashboard(data) {
     labelsEl.innerHTML = months.map(m => `<span class="b2b-bar-label">${monthLabels[m.month]||m.month}</span>`).join('');
   }
 
-  // Monthly conversion volume chart
-  const convByMonth = {};
-  rows.forEach(r => {
-    const m = r[IB_RI.month];
-    const phase = String(r[IB_RI.phase] || '').toLowerCase();
-    const status = String(r[IB_RI.status] || '').toLowerCase();
-    if (!m) return;
-    if (!convByMonth[m]) convByMonth[m] = 0;
-    if (phase.includes('converted') || status.includes('converted')) convByMonth[m]++;
-  });
-
-  const convMonths = Object.keys(convByMonth).sort().map(m => ({ month: m, count: convByMonth[m] }));
-  const maxConv = Math.max(...convMonths.map(m => m.count), 1);
-
+  
+const convMonths = (data.monthlyVolume || []).filter(m => m.converted > 0);
+  const maxConv = Math.max(...convMonths.map(m => m.converted), 1);
   const convChartEl = document.getElementById('inbound-conv-chart');
   const convLabelsEl = document.getElementById('inbound-conv-labels');
   if (convChartEl) {
