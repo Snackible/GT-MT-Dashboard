@@ -69,17 +69,74 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGLvZw0ICbRcE9
 let _mtCachedData = null;
 let _inboundLoaded = false;
 
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("Fetching MT Data...");
-  fetch(APPS_SCRIPT_URL + "?action=mtData")
+// MT filter state
+let _mtMonths = "ALL";
+let _mtZone = "ALL";
+
+const MT_FY_MONTHS = {
+  "ALL": "ALL",
+  "FY25-26": "2025-07,2025-08,2025-09,2025-10,2025-11,2025-12,2026-01,2026-02,2026-03",
+  "FY26-27": "2026-04,2026-05,2026-06,2026-07,2026-08,2026-09,2026-10,2026-11,2026-12"
+};
+
+const MT_Q_MONTHS = {
+  "Q1": "2025-07,2025-08,2025-09",
+  "Q2": "2025-10,2025-11,2025-12",
+  "Q3": "2026-01,2026-02,2026-03",
+  "Q4": "2026-04,2026-05,2026-06"
+};
+
+function fetchMtData(months) {
+  const url = APPS_SCRIPT_URL + "?action=mtData" + (months !== "ALL" ? "&months=" + months : "");
+  document.getElementById("mt-kpi-sales").innerText = "...";
+  fetch(url)
     .then(r => r.json())
     .then(data => {
       _mtCachedData = data;
-      renderMtDashboard(data, "ALL");
+      renderMtDashboard(data, _mtZone);
     })
     .catch(err => console.error("MT Load Failed:", err));
-});
+}
 
+document.addEventListener("DOMContentLoaded", () => {
+  fetchMtData("ALL");
+
+  // FY chips
+  document.querySelectorAll("#mt-fy-chips .fchip").forEach(b => {
+    b.addEventListener("click", () => {
+      document.querySelectorAll("#mt-fy-chips .fchip").forEach(x => x.classList.remove("on"));
+      document.querySelectorAll("#mt-q-chips .fchip").forEach(x => x.classList.remove("on"));
+      document.querySelectorAll("#mt-month-chips .fchip").forEach(x => x.classList.remove("on"));
+      b.classList.add("on");
+      _mtMonths = MT_FY_MONTHS[b.dataset.fy] || "ALL";
+      fetchMtData(_mtMonths);
+    });
+  });
+
+  // Quarter chips
+  document.querySelectorAll("#mt-q-chips .fchip").forEach(b => {
+    b.addEventListener("click", () => {
+      document.querySelectorAll("#mt-fy-chips .fchip").forEach(x => x.classList.remove("on"));
+      document.querySelectorAll("#mt-q-chips .fchip").forEach(x => x.classList.remove("on"));
+      document.querySelectorAll("#mt-month-chips .fchip").forEach(x => x.classList.remove("on"));
+      b.classList.add("on");
+      _mtMonths = MT_Q_MONTHS[b.dataset.q] || "ALL";
+      fetchMtData(_mtMonths);
+    });
+  });
+
+  // Individual month chips (multi-select)
+  document.querySelectorAll("#mt-month-chips .fchip").forEach(b => {
+    b.addEventListener("click", () => {
+      document.querySelectorAll("#mt-fy-chips .fchip").forEach(x => x.classList.remove("on"));
+      document.querySelectorAll("#mt-q-chips .fchip").forEach(x => x.classList.remove("on"));
+      b.classList.toggle("on");
+      const selected = [...document.querySelectorAll("#mt-month-chips .fchip.on")].map(x => x.dataset.m);
+      _mtMonths = selected.length > 0 ? selected.join(",") : "ALL";
+      fetchMtData(_mtMonths);
+    });
+  });
+});
 // ===== Inbound date filtering state =====
 let _inboundRows = [];
 let _inboundMonths = [];
@@ -440,18 +497,17 @@ function renderMtDashboard(data, zoneFilter) {
   }
 }
 
-// MT Zone Filter Click Handling
-document.querySelectorAll('.fchip').forEach(b => {
-  b.addEventListener('click', () => {
+// MT Zone Filter
+document.querySelectorAll("#mt-zone-chips .fchip").forEach(b => {
+  b.addEventListener("click", () => {
     if (!_mtCachedData) return;
-    document.querySelectorAll('.fchip').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
+    document.querySelectorAll("#mt-zone-chips .fchip").forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
     const label = b.textContent.trim().toUpperCase();
-    const zone = label === 'ALL ZONES' ? 'ALL' : label;
-    renderMtDashboard(_mtCachedData, zone);
+    _mtZone = label === "ALL ZONES" ? "ALL" : label;
+    renderMtDashboard(_mtCachedData, _mtZone);
   });
 });
-
 // ===== INBOUND Dashboard Rendering =====
 function renderInboundDashboard(data) {
   if (data.error) { console.error("Backend Error:", data.error); return; }
