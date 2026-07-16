@@ -477,14 +477,47 @@ function renderMtDashboard(data, zoneFilter) {
     }).join('');
   }
 
-  // Stores
+  // Stores with sparklines
   if (filteredStores2) {
-    document.getElementById('mt-stores').innerHTML = filteredStores2.map(s => {
+    const allMonths = data.monthly ? data.monthly.map(m => m.month) : [];
+
+    document.getElementById('mt-stores').innerHTML = filteredStores2.map((s, idx) => {
       const val = s.sales >= 100000 ? "₹"+(s.sales/100000).toFixed(2)+"L" : "₹"+Math.round(s.sales).toLocaleString('en-IN');
-      const cap = s.name.replace(/\b(\w)/g,c=>c.toUpperCase()).slice(0,30);
+      const cap = s.name.replace(/\b(\w)/g,c=>c.toUpperCase()).slice(0,28);
       const zone = s.zone ? s.zone.charAt(0)+s.zone.slice(1).toLowerCase() : '';
-      return `<div class="storerow"><div><div class="storename">${cap}</div><div class="storesub">${s.state} · ${zone}</div></div><span class="storeval num">${val}</span></div>`;
-    }).join('');
+
+      // Build sparkline SVG
+      const monthly = s.monthly || {};
+      const months = allMonths.length > 0 ? allMonths : Object.keys(monthly).sort();
+      const vals = months.map(m => monthly[m] || 0);
+      const maxV = Math.max(...vals, 1);
+      const W = 80, H = 24, pad = 2;
+      const step = months.length > 1 ? (W - pad*2) / (months.length - 1) : 0;
+      const pts = vals.map((v, i) => {
+        const x = pad + i * step;
+        const y = pad + (H - pad*2) - (v / maxV) * (H - pad*2);
+        return `${x},${y}`;
+      });
+      const hasData = vals.some(v => v > 0);
+      const trend = vals.length > 1 ? vals[vals.length-1] - vals[vals.length-2] : 0;
+      const trendCol = trend > 0 ? '#34D399' : trend < 0 ? '#F87171' : '#5C6573';
+
+      const sparkline = hasData && pts.length > 1
+        ? `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="overflow:visible">
+            <polyline points="${pts.join(' ')}" fill="none" stroke="${trendCol}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+            <circle cx="${pts[pts.length-1].split(',')[0]}" cy="${pts[pts.length-1].split(',')[1]}" r="2.5" fill="${trendCol}"/>
+          </svg>`
+        : `<span style="font-size:10px;color:var(--text-2)">no data</span>`;
+
+      return `<div style="display:grid;grid-template-columns:1fr ${W}px 70px;align-items:center;gap:12px;padding:12px 8px;border-bottom:1px solid var(--line-soft)">
+        <div>
+          <div style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cap}</div>
+          <div style="font-size:11px;color:var(--text-2);margin-top:2px">${s.state} · ${zone}</div>
+        </div>
+        <div style="display:flex;align-items:center">${sparkline}</div>
+        <div style="font-size:13px;font-weight:500;color:var(--text);text-align:right;font-variant-numeric:tabular-nums">${val}</div>
+      </div>`;
+    }).join('') + `<div style="padding:10px 8px;font-size:11px;color:var(--text-2)">Sparkline = MoM trend · dot color = last month vs prior</div>`;
   }
 
   // Categories
