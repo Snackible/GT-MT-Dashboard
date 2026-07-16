@@ -1013,16 +1013,61 @@ function renderGtDashboard() {
       svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="4" fill="' + col + '" stroke="#0B0F14" stroke-width="2"/>';
     });
 
-    // X labels
+    // X labels — show "Jun 25" format
     svg += '<g fill="#5C6573" font-size="9" text-anchor="middle">';
     points.forEach(function(p) {
       var lbl = GT_MONTH_LABELS[p.m.month] || p.m.month;
-      var short = lbl.split(" ")[0];
-      svg += '<text x="' + p.x + '" y="' + (svgH - 2) + '">' + short + '</text>';
+      var parts = lbl.split(" "); // ["Jun", "25"]
+      // Show every label if <=8 months, else every other
+      var show = mon.length <= 8 || points.indexOf(p) % 2 === 0;
+      if (show) {
+        svg += '<text x="' + p.x + '" y="' + (svgH - 10) + '">' + parts[0] + '</text>';
+        if (parts[1]) svg += '<text x="' + p.x + '" y="' + (svgH - 1) + '" font-size="8">\'' + parts[1] + '</text>';
+      }
+    });
+    svg += '</g>';
+
+    // Invisible hover zones for tooltip
+    svg += '<g class="gt-trend-dots">';
+    points.forEach(function(p, i) {
+      var prev = mon[i-1] ? mon[i-1].sales : null;
+      var pct = prev && prev > 0 ? (((p.m.sales - prev) / prev) * 100).toFixed(1) : null;
+      var pctStr = pct !== null ? (pct >= 0 ? '+' + pct + '%' : pct + '%') : 'first month';
+      var pctCol = pct === null ? '#9AA4B2' : pct >= 0 ? '#34D399' : '#F87171';
+      var lbl = GT_MONTH_LABELS[p.m.month] || p.m.month;
+      var fmtVal = fmtGt(p.m.sales);
+      svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="14" fill="transparent"' +
+        ' class="gt-hover-dot"' +
+        ' data-month="' + lbl + '"' +
+        ' data-val="' + fmtVal + '"' +
+        ' data-pct="' + pctStr + '"' +
+        ' data-pct-col="' + pctCol + '"/>';
     });
     svg += '</g>';
 
     document.getElementById("gt-trend-svg").innerHTML = svg;
+
+    // Tooltip logic
+    var gtTip = document.getElementById('gt-trend-tip');
+    if (!gtTip) {
+      gtTip = document.createElement('div');
+      gtTip.id = 'gt-trend-tip';
+      gtTip.style.cssText = 'position:fixed;display:none;background:#11161F;border:1px solid #1F2733;border-radius:10px;padding:10px 14px;font-size:12px;color:#F5F7FA;pointer-events:none;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.6);font-family:system-ui,sans-serif;min-width:130px';
+      document.body.appendChild(gtTip);
+    }
+
+    var svgEl = document.getElementById('gt-trend-svg');
+    svgEl.addEventListener('mousemove', function(e) {
+      var dot = e.target.closest('.gt-hover-dot');
+      if (!dot) { gtTip.style.display = 'none'; return; }
+      gtTip.innerHTML = '<div style="font-size:11px;color:#9AA4B2;margin-bottom:4px">' + dot.dataset.month + '</div>' +
+        '<div style="font-size:16px;font-weight:600;margin-bottom:6px">' + dot.dataset.val + '</div>' +
+        '<div style="font-size:12px;color:' + dot.dataset.pctCol + ';font-weight:500">' + dot.dataset.pct + ' vs prior month</div>';
+      gtTip.style.display = 'block';
+      gtTip.style.left = (e.clientX + 14) + 'px';
+      gtTip.style.top = (e.clientY - 40) + 'px';
+    });
+    svgEl.addEventListener('mouseleave', function() { gtTip.style.display = 'none'; });
     document.getElementById("gt-trend-lead").innerHTML = fmtGt(d.totalSales) + ' <span style="font-size:13px;color:var(--text-1);font-weight:400">across ' + mon.length + ' months</span>';
     document.getElementById("gt-trend-legend").innerHTML = '<span><i style="background:#A3E635"></i>FY 25-26</span><span><i style="background:#22D3EE"></i>FY 26-27</span>';
   }
