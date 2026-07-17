@@ -488,6 +488,10 @@ function renderMtDashboard(data, zoneFilter) {
   }
 
   // Stores with sparklines + tooltip
+  renderStores(filteredStores2, data.monthly, zoneFilter);
+}
+
+function renderStores(filteredStores2, monthly, zoneFilter) {
   if (filteredStores2) {
     const allMonths = data.monthly ? data.monthly.map(m => m.month) : [];
     const MONTH_LABELS = {
@@ -587,6 +591,7 @@ function renderMtDashboard(data, zoneFilter) {
       tip.style.display = 'none';
     });
   }
+}
 
   // Categories
   const catColors = ['#22D3EE','#A78BFA','#F472B6','#A3E635','#FBBF24','#34D399','#7C8390'];
@@ -647,6 +652,30 @@ function renderMtDashboard(data, zoneFilter) {
 }
 
 // Zone handled by dropdown above
+
+// Store month filter — independent of main period filter
+let _storeMonthFilter = "ALL";
+let _storeMonthData = null; // cached separate fetch for store month
+
+document.getElementById('mt-store-month')?.addEventListener('change', function() {
+  _storeMonthFilter = this.value;
+  if (_storeMonthFilter === "ALL") {
+    // Use main cached data
+    if (_mtCachedData) renderStores(_mtCachedData.topStores, _mtCachedData.monthly, _mtZone);
+    return;
+  }
+  // Fetch just that month's data for store ranking
+  const url = APPS_SCRIPT_URL + "?action=mtData&months=" + _storeMonthFilter;
+  document.getElementById('mt-stores').innerHTML = '<div style="padding:20px;color:var(--text-2);font-size:13px">Loading...</div>';
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      _storeMonthData = data;
+      const stores = _mtZone === "ALL" ? data.topStores : (data.zoneTopStores?.[_mtZone] || []);
+      renderStores(stores, data.monthly, _mtZone);
+    })
+    .catch(err => console.error("Store month fetch failed:", err));
+});
 // ===== INBOUND Dashboard Rendering =====
 function renderInboundDashboard(data) {
   if (data.error) { console.error("Backend Error:", data.error); return; }
