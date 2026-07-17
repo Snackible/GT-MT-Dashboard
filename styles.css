@@ -182,7 +182,8 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 .pbar-track{background:var(--panel-2);height:10px;border-radius:99px;overflow:hidden}
 .pbar-fill{height:100%;border-radius:99px}
 
-.b2b-bar-chart{display:flex;align-items:flex-end;gap:8px;height:130px;margin-bottom:6px;padding:0 4px}
+.b2b-bar-chart{display:flex;align-items:flex-end;gap:8px;height:130px;margin-bottom:6px;padding:0 4px;overflow:hidden}
+.b2b-bar-col{max-height:130px}
 .b2b-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
 .b2b-bar-val{font-size:10px;color:var(--text-2)}
 .b2b-bar{width:100%;background:var(--cyan);opacity:.4;border-radius:3px 3px 0 0}
