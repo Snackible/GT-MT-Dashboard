@@ -57,6 +57,7 @@ h1.title{font-size:clamp(40px,5vw,72px); font-weight:700; letter-spacing:-.04em;
 
 /* ===== DATA LAYER ===== */
 .data{background:#000;padding:80px 32px 80px;border-top:none;position:relative;z-index:3}
+#view-mt,#view-gt,#view-inbound{position:relative;z-index:3;background:#000;min-height:100vh}
 .shell{max-width:1440px;margin:0 auto}
 .section-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:32px;gap:24px;flex-wrap:wrap}
 .section-head h2{font-size:22px;font-weight:600;letter-spacing:-.02em}
