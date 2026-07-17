@@ -17,7 +17,9 @@
   --red:#F87171;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--text);font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:"ss01","cv11","tnum"}
+html,body{background:#000;color:var(--text);font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:"ss01","cv11","tnum"}
+html{background:#000!important}
+body{background:#000!important;position:relative;z-index:1}
 .mono{font-family:'Geist Mono',ui-monospace,monospace;font-feature-settings:"tnum"}
 .num{font-variant-numeric:tabular-nums}
 
