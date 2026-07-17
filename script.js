@@ -137,8 +137,8 @@ function updatePeriodValueDropdown(type) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById('particles').style.opacity = '1';
   fetchMtData("ALL");
-
   // Hide value dropdown initially
   document.getElementById("mt-period-value-wrap").style.display = "none";
 
