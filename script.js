@@ -371,12 +371,14 @@ document.getElementById('inbound-reset-dates')?.addEventListener('click', () => 
   // Toggle branding dot color
   const dot = document.getElementById('nav-dot');
   if(view === 'inbound') {
+    document.getElementById('particles').style.opacity = '0';
     dot.style.background = '#FBBF24';
     dot.style.boxShadow = '0 0 0 3px rgba(251,191,36,.18),0 0 12px rgba(251,191,36,.6)';
   } else if(view === 'gt') {
     dot.style.background = '#A3E635';
     dot.style.boxShadow = '0 0 0 3px rgba(163,230,53,.18),0 0 12px rgba(163,230,53,.6)';
   } else {
+    document.getElementById('particles').style.opacity = '1';
     dot.style.background = '#34D399';
     dot.style.boxShadow = '0 0 0 3px rgba(52,211,153,.18),0 0 12px rgba(52,211,153,.6)';
   }
