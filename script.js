@@ -19,6 +19,7 @@
   }
   function step(){
     ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+    if(window.currentTab === 'inbound') { raf=requestAnimationFrame(step); return; }
     for(const p of particles){
       if(p.x<0||p.x>W)p.vx*=-1;
       if(p.y<0||p.y>H)p.vy*=-1;
