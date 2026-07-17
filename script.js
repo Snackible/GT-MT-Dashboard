@@ -694,7 +694,7 @@ function renderInboundDashboard(data) {
   const labelsEl = document.getElementById('inbound-monthly-labels');
   if (chartEl) {
     chartEl.innerHTML = months.map(m => {
-      const h = Math.max((m.count / maxVol) * 130, 4);
+      const h = Math.max((m.count / maxVol) * 100, 4);
       const isPeak = m.count === maxVol;
       return `<div class="b2b-bar-col"><span class="b2b-bar-val">${m.count}</span><div class="b2b-bar ${isPeak?'peak':''}" style="height:${h}px"></div></div>`;
     }).join('');
@@ -710,9 +710,9 @@ const convMonths = (data.monthlyVolume || []).filter(m => m.converted > 0);
   const convLabelsEl = document.getElementById('inbound-conv-labels');
   if (convChartEl) {
     convChartEl.innerHTML = convMonths.map(m => {
-      const h = Math.max((m.count / maxConv) * 130, 4);
-      const isPeak = m.count === maxConv;
-      return `<div class="b2b-bar-col"><span class="b2b-bar-val">${m.count}</span><div class="b2b-bar ${isPeak ? 'peak' : ''}" style="height:${h}px;background:#34D399"></div></div>`;
+      const h = Math.max((m.converted / maxConv) * 100, 4);
+      const isPeak = m.converted === maxConv;
+      return `<div class="b2b-bar-col"><span class="b2b-bar-val">${m.converted}</span><div class="b2b-bar ${isPeak ? 'peak' : ''}" style="height:${h}px;background:#34D399"></div></div>`;
     }).join('');
   }
   if (convLabelsEl) {
