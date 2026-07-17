@@ -549,7 +549,7 @@ function renderStores(filteredStores2, monthly, zoneFilter) {
 
   // Categories
   if (filteredStores2) {
-    const allMonths = data.monthly ? data.monthly.map(m => m.month) : [];
+    const allMonths = monthly ? monthly.map(m => m.month) : [];
     const MONTH_LABELS = {
       "2025-07":"Jul 25","2025-08":"Aug 25","2025-09":"Sep 25","2025-10":"Oct 25",
       "2025-11":"Nov 25","2025-12":"Dec 25","2026-01":"Jan 26","2026-02":"Feb 26",
