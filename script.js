@@ -704,7 +704,7 @@ function renderInboundDashboard(data) {
   }
 
   
-const convMonths = (data.monthlyVolume || []).filter(m => m.converted > 0);
+const convMonths = (data.monthlyVolume || []);
   const maxConv = Math.max(...convMonths.map(m => m.converted), 1);
   const convChartEl = document.getElementById('inbound-conv-chart');
   const convLabelsEl = document.getElementById('inbound-conv-labels');
