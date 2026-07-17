@@ -489,9 +489,65 @@ function renderMtDashboard(data, zoneFilter) {
 
   // Stores with sparklines + tooltip
   renderStores(filteredStores2, data.monthly, zoneFilter);
+
+  // Categories
+  const catColors = ['#22D3EE','#A78BFA','#F472B6','#A3E635','#FBBF24','#34D399','#7C8390'];
+  if (data.categories) {
+    document.getElementById('mt-catbar').innerHTML = data.categories.map((c,i) => {
+      const col = catColors[i] || '#555';
+      const label = parseFloat(c.pct) > 7 ? c.pct+'%' : '';
+      const textCol = ['#A3E635','#FBBF24'].includes(col) ? 'color:#000' : '';
+      return `<div style="flex:${Math.round(c.sales)};background:${col};${textCol}">${label}</div>`;
+    }).join('');
+    document.getElementById('mt-catlegend').innerHTML = data.categories.map((c,i) => {
+      const col = catColors[i] || '#555';
+      const name = c.name.charAt(0)+c.name.slice(1).toLowerCase();
+      const val = c.sales >= 100000 ? "₹"+(c.sales/100000).toFixed(2)+"L" : "₹"+Math.round(c.sales).toLocaleString('en-IN');
+      return `<div><span class="lbl"><i style="background:${col}"></i>${name}</span><span class="val">${val}</span></div>`;
+    }).join('');
+  }
+
+  // Monthly horizontal bar chart
+  const hbarEl = document.getElementById("mt-monthly-hbar");
+  if (hbarEl && data.monthly && data.monthly.length > 0) {
+    const maxMonthSales = Math.max(...data.monthly.map(m => m.sales));
+    const monthLabels = {
+      "2025-07":"Jul 25","2025-08":"Aug 25","2025-09":"Sep 25","2025-10":"Oct 25",
+      "2025-11":"Nov 25","2025-12":"Dec 25","2026-01":"Jan 26","2026-02":"Feb 26",
+      "2026-03":"Mar 26","2026-04":"Apr 26","2026-05":"May 26","2026-06":"Jun 26",
+      "2026-07":"Jul 26"
+    };
+    hbarEl.innerHTML = data.monthly.map(m => {
+      const pct = (m.sales / maxMonthSales * 100).toFixed(1);
+      const val = m.sales >= 100000 ? "₹" + (m.sales/100000).toFixed(2) + "L" : "₹" + Math.round(m.sales).toLocaleString("en-IN");
+      const label = monthLabels[m.month] || m.month;
+      return `<div style="display:grid;grid-template-columns:54px 1fr 80px;align-items:center;gap:10px">
+        <span style="font-size:11px;color:var(--text-2);text-align:right">${label}</span>
+        <div style="height:8px;background:var(--panel-2);border-radius:99px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#22D3EE,#67E8F9);border-radius:99px;transition:width .4s"></div>
+        </div>
+        <span style="font-size:12px;color:var(--text-1);font-variant-numeric:tabular-nums">${val}</span>
+      </div>`;
+    }).join("");
+  }
+
+  // States Table
+  const statusColor = (v, stores) => {
+    const vel = v.sales / (stores || 1);
+    return vel > 10000 ? 's-good' : vel > 6000 ? 's-warn' : 's-bad';
+  };
+  if (filteredStates) {
+    document.getElementById('mt-states').innerHTML = filteredStates.map(s => {
+      const sc = statusColor(s, s.stores);
+      const sales = s.sales >= 100000 ? "₹"+(s.sales/100000).toFixed(2)+"L" : "₹"+Math.round(s.sales).toLocaleString('en-IN');
+      return `<tr><td><span class="statusdot ${sc}"></span>${s.name}</td><td class="num">${s.stores}</td><td class="num">${sales}</td><td class="num">${s.velocity}</td></tr>`;
+    }).join('');
+  }
 }
 
 function renderStores(filteredStores2, monthly, zoneFilter) {
+
+  // Categories
   if (filteredStores2) {
     const allMonths = data.monthly ? data.monthly.map(m => m.month) : [];
     const MONTH_LABELS = {
@@ -592,66 +648,6 @@ function renderStores(filteredStores2, monthly, zoneFilter) {
     });
   }
 }
-
-  // Categories
-  const catColors = ['#22D3EE','#A78BFA','#F472B6','#A3E635','#FBBF24','#34D399','#7C8390'];
-  if (data.categories) {
-    document.getElementById('mt-catbar').innerHTML = data.categories.map((c,i) => {
-      const col = catColors[i] || '#555';
-      const label = parseFloat(c.pct) > 7 ? c.pct+'%' : '';
-      const textCol = ['#A3E635','#FBBF24'].includes(col) ? 'color:#000' : '';
-      return `<div style="flex:${Math.round(c.sales)};background:${col};${textCol}">${label}</div>`;
-    }).join('');
-    
-    document.getElementById('mt-catlegend').innerHTML = data.categories.map((c,i) => {
-      const col = catColors[i] || '#555';
-      const name = c.name.charAt(0)+c.name.slice(1).toLowerCase();
-      const val = c.sales >= 100000 ? "₹"+(c.sales/100000).toFixed(2)+"L" : "₹"+Math.round(c.sales).toLocaleString('en-IN');
-      return `<div><span class="lbl"><i style="background:${col}"></i>${name}</span><span class="val">${val}</span></div>`;
-    }).join('');
-  }
-
-  // Monthly horizontal bar chart
-  const hbarEl = document.getElementById("mt-monthly-hbar");
-  if (hbarEl && data.monthly && data.monthly.length > 0) {
-    const maxMonthSales = Math.max(...data.monthly.map(m => m.sales));
-    const monthLabels = {
-      "2025-07":"Jul 25","2025-08":"Aug 25","2025-09":"Sep 25","2025-10":"Oct 25",
-      "2025-11":"Nov 25","2025-12":"Dec 25","2026-01":"Jan 26","2026-02":"Feb 26",
-      "2026-03":"Mar 26","2026-04":"Apr 26","2026-05":"May 26","2026-06":"Jun 26",
-      "2026-07":"Jul 26"
-    };
-    hbarEl.innerHTML = data.monthly.map(m => {
-      const pct = (m.sales / maxMonthSales * 100).toFixed(1);
-      const val = m.sales >= 100000
-        ? "₹" + (m.sales/100000).toFixed(2) + "L"
-        : "₹" + Math.round(m.sales).toLocaleString("en-IN");
-      const label = monthLabels[m.month] || m.month;
-      return `<div style="display:grid;grid-template-columns:54px 1fr 80px;align-items:center;gap:10px">
-        <span style="font-size:11px;color:var(--text-2);text-align:right">${label}</span>
-        <div style="height:8px;background:var(--panel-2);border-radius:99px;overflow:hidden">
-          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#22D3EE,#67E8F9);border-radius:99px;transition:width .4s"></div>
-        </div>
-        <span style="font-size:12px;color:var(--text-1);font-variant-numeric:tabular-nums">${val}</span>
-      </div>`;
-    }).join("");
-  }
-
-  // States Table
-  const statusColor = (v, stores) => {
-    const vel = v.sales / (stores || 1);
-    return vel > 10000 ? 's-good' : vel > 6000 ? 's-warn' : 's-bad';
-  };
-  if (filteredStates) {
-    document.getElementById('mt-states').innerHTML = filteredStates.map(s => {
-      const sc = statusColor(s, s.stores);
-      const sales = s.sales >= 100000 ? "₹"+(s.sales/100000).toFixed(2)+"L" : "₹"+Math.round(s.sales).toLocaleString('en-IN');
-      return `<tr><td><span class="statusdot ${sc}"></span>${s.name}</td><td class="num">${s.stores}</td><td class="num">${sales}</td><td class="num">${s.velocity}</td></tr>`;
-    }).join('');
-  }
-}
-
-// Zone handled by dropdown above
 
 // Store month filter — independent of main period filter
 let _storeMonthFilter = "ALL";
