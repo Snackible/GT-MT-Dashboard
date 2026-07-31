@@ -1210,11 +1210,13 @@ function switchGtView(view) {
   _gtCurrentView = view;
   document.getElementById("gt-orders-view").style.display = view === "orders" ? "block" : "none";
 
-  // Hide/show summary sections
+  // Hide/show summary sections + top filters
   var summaryEls = document.querySelectorAll("#view-gt .grid.row2, #view-gt .grid.row2b, #view-gt .section-gap");
   summaryEls.forEach(function(el) {
     el.style.display = view === "orders" ? "none" : "";
   });
+  var topFilters = document.querySelector("#view-gt .filters[style*='margin-bottom']");
+  if (topFilters) topFilters.style.display = view === "orders" ? "none" : "";
   var summaryBtn = document.getElementById("gt-view-summary");
   var ordersBtn = document.getElementById("gt-view-orders");
   if (view === "orders") {
@@ -1248,6 +1250,31 @@ function getFilteredOrdRows() {
 function renderGtOrders() {
   var rows = getFilteredOrdRows();
 
+  // Update KPI cards to reflect current order filter
+  var totalSales = 0, totalOrders = rows.length, ordersWithSales = 0;
+  var clientSet = {}, clientOrders = {};
+  rows.forEach(function(r) {
+    var s = r[GT.sales] || 0;
+    totalSales += s;
+    if (s > 0) ordersWithSales++;
+    var c = r[GT.client];
+    if (c) { clientSet[c] = 1; clientOrders[c] = (clientOrders[c] || 0) + 1; }
+  });
+  var uniqueClients = Object.keys(clientSet).length;
+  var repeatClients = Object.keys(clientOrders).filter(function(c) { return clientOrders[c] > 1; }).length;
+  var aov = ordersWithSales > 0 ? totalSales / ordersWithSales : 0;
+  var repeatPct = uniqueClients > 0 ? Math.round(repeatClients / uniqueClients * 100) : 0;
+
+  document.getElementById("gt-kpi-sales").innerText = fmtGt(totalSales);
+  document.getElementById("gt-kpi-sales-sub").innerHTML = '<span style="font-size:12px;color:var(--text-1)">' + ordersWithSales + ' orders with value</span>';
+  document.getElementById("gt-kpi-orders").innerText = totalOrders.toLocaleString();
+  document.getElementById("gt-kpi-orders-sub").innerHTML = '<span style="font-size:12px;color:var(--text-1)">' + ordersWithSales + ' with sales data</span>';
+  document.getElementById("gt-kpi-clients").innerText = uniqueClients;
+  document.getElementById("gt-kpi-clients-sub").innerHTML = '<span style="font-size:12px;color:var(--text-1)">' + repeatClients + ' repeat</span>';
+  document.getElementById("gt-kpi-aov").innerText = fmtGt(aov);
+  document.getElementById("gt-kpi-aov-sub").innerHTML = '<span style="font-size:12px;color:var(--text-1)">on ' + ordersWithSales + ' valued orders</span>';
+  document.getElementById("gt-kpi-repeat").innerText = repeatPct + "%";
+  document.getElementById("gt-repeat-bar").style.width = repeatPct + "%";
   rows.sort(function(a, b) {
     var av, bv;
     if (_gtOrdSortCol === "ref")    { av = a[GT.ref]; bv = b[GT.ref]; }
