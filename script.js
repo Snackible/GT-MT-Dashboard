@@ -1376,7 +1376,6 @@ function initGtOrdersView() {
 }
 
 function initGtFilters() {
-function initGtFilters() {
   // State dropdown
   var stateSet = {};
   _gtRows.forEach(function(r) { if (r[GT.state] && r[GT.state] !== "Unknown") stateSet[r[GT.state]] = 1; });
@@ -1427,7 +1426,6 @@ function initGtFilters() {
       if (_gtCurrentView === "orders") renderGtOrders();
     });
   });
-
 }
 
 // ===== Tooltip Engine =====
