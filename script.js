@@ -399,6 +399,7 @@ document.getElementById('inbound-reset-dates')?.addEventListener('click', () => 
         _gtLoaded = true;
         _gtRows = data.rows;
         initGtFilters();
+        initGtOrdersView();
         renderGtDashboard();
       })
       .catch(function(err) { console.error("GT Load Failed:", err); });
@@ -1398,7 +1399,6 @@ function initGtFilters() {
     });
   });
 
-  initGtOrdersView();
 }
 
 // ===== Tooltip Engine =====
