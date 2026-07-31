@@ -1193,7 +1193,159 @@ function renderGtDashboard() {
     summaryEl.textContent = rows.length < total ? "Showing " + rows.length + " of " + total + " orders" : "Showing all " + rows.length + " orders";
   }
 }
+// ===== GT ORDERS VIEW =====
+var _gtOrdPage = 1;
+var _gtOrdPageSize = 20;
+var _gtOrdSortCol = "date";
+var _gtOrdSortDir = "desc";
+var _gtOrdSearch = "";
+var _gtOrdMonthFrom = "ALL";
+var _gtOrdMonthTo = "ALL";
+var _gtOrdDateFrom = "";
+var _gtOrdDateTo = "";
+var _gtCurrentView = "summary";
 
+function switchGtView(view) {
+  _gtCurrentView = view;
+  var summaryEls = document.querySelectorAll(
+    "#gt-orders-view, .grid.row2, .grid.row2b, .section-gap"
+  );
+  document.getElementById("gt-orders-view").style.display = view === "orders" ? "block" : "none";
+
+  var summaryBtn = document.getElementById("gt-view-summary");
+  var ordersBtn = document.getElementById("gt-view-orders");
+  if (view === "orders") {
+    summaryBtn.style.background = "transparent";
+    summaryBtn.style.color = "#9AA4B2";
+    ordersBtn.style.background = "linear-gradient(180deg,#fff,#E5E7EB)";
+    ordersBtn.style.color = "#000";
+    renderGtOrders();
+  } else {
+    summaryBtn.style.background = "linear-gradient(180deg,#fff,#E5E7EB)";
+    summaryBtn.style.color = "#000";
+    ordersBtn.style.background = "transparent";
+    ordersBtn.style.color = "#9AA4B2";
+  }
+}
+
+function getFilteredOrdRows() {
+  var base = getFilteredGtRows();
+  return base.filter(function(r) {
+    var m = r[GT.month];
+    var d = r[GT.date];
+    if (_gtOrdMonthFrom !== "ALL" && m && m < _gtOrdMonthFrom) return false;
+    if (_gtOrdMonthTo !== "ALL" && m && m > _gtOrdMonthTo) return false;
+    if (_gtOrdDateFrom && d && d < _gtOrdDateFrom) return false;
+    if (_gtOrdDateTo && d && d > _gtOrdDateTo) return false;
+    if (_gtOrdSearch && r[GT.client].toLowerCase().indexOf(_gtOrdSearch.toLowerCase()) === -1) return false;
+    return true;
+  });
+}
+
+function renderGtOrders() {
+  var rows = getFilteredOrdRows();
+
+  rows.sort(function(a, b) {
+    var av, bv;
+    if (_gtOrdSortCol === "ref")    { av = a[GT.ref]; bv = b[GT.ref]; }
+    else if (_gtOrdSortCol === "date")   { av = a[GT.date]; bv = b[GT.date]; }
+    else if (_gtOrdSortCol === "client") { av = a[GT.client]; bv = b[GT.client]; }
+    else if (_gtOrdSortCol === "poc")    { av = a[GT.poc]; bv = b[GT.poc]; }
+    else if (_gtOrdSortCol === "sales")  { av = a[GT.sales] || 0; bv = b[GT.sales] || 0; }
+    if (av < bv) return _gtOrdSortDir === "asc" ? -1 : 1;
+    if (av > bv) return _gtOrdSortDir === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  var total = rows.length;
+  var totalPages = Math.max(1, Math.ceil(total / _gtOrdPageSize));
+  if (_gtOrdPage > totalPages) _gtOrdPage = 1;
+  var start = (_gtOrdPage - 1) * _gtOrdPageSize;
+  var pageRows = rows.slice(start, start + _gtOrdPageSize);
+
+  document.getElementById("gt-ord-count").textContent =
+    "Showing " + (total === 0 ? 0 : start + 1) + "–" + Math.min(start + _gtOrdPageSize, total) + " of " + total;
+  document.getElementById("gt-ord-page-info").textContent =
+    "Page " + _gtOrdPage + " of " + totalPages;
+
+  document.getElementById("gt-ord-prev").style.opacity = _gtOrdPage <= 1 ? "0.4" : "1";
+  document.getElementById("gt-ord-next").style.opacity = _gtOrdPage >= totalPages ? "0.4" : "1";
+
+  // Update header sort indicators
+  document.querySelectorAll(".gt-ord-th").forEach(function(th) {
+    var col = th.getAttribute("data-col");
+    var arrow = col === _gtOrdSortCol ? (_gtOrdSortDir === "asc" ? " ↑" : " ↓") : " ↕";
+    th.style.color = col === _gtOrdSortCol ? "#22D3EE" : "#5C6573";
+    th.textContent = th.textContent.replace(/ [↑↓↕]$/, "") + arrow;
+  });
+
+  document.getElementById("gt-ord-tbody").innerHTML = pageRows.map(function(r, i) {
+    var refCol = r[GT.fy] === "FY26-27" ? "#22D3EE" : "#A3E635";
+    var sales = r[GT.sales] > 0
+      ? "₹" + Math.round(r[GT.sales]).toLocaleString("en-IN")
+      : '<span style="color:#5C6573">—</span>';
+    var bg = i % 2 === 1 ? "background:rgba(255,255,255,.015)" : "";
+    return '<tr style="border-bottom:1px solid #161C25;' + bg + '">' +
+      '<td style="padding:11px 16px;color:' + refCol + ';font-family:monospace;font-size:12px">' + r[GT.ref] + '</td>' +
+      '<td style="padding:11px 16px;color:#9AA4B2">' + (r[GT.date] ? r[GT.date].split("-").reverse().join("/") : "—") + '</td>' +
+      '<td style="padding:11px 16px;color:#F5F7FA;font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + r[GT.client] + '</td>' +
+      '<td style="padding:11px 16px;color:#9AA4B2">' + (r[GT.poc] || "—") + '</td>' +
+      '<td style="padding:11px 16px;text-align:right;font-variant-numeric:tabular-nums">' + sales + '</td>' +
+    '</tr>';
+  }).join("");
+}
+
+function initGtOrdersView() {
+  // Month dropdowns from GT rows
+  var monthSet = {};
+  _gtRows.forEach(function(r) { if (r[GT.month]) monthSet[r[GT.month]] = 1; });
+  var months = Object.keys(monthSet).sort();
+  var fromSel = document.getElementById("gt-ord-month-from");
+  var toSel = document.getElementById("gt-ord-month-to");
+  fromSel.innerHTML = '<option value="ALL">From</option>';
+  toSel.innerHTML = '<option value="ALL">To</option>';
+  months.forEach(function(m) {
+    var label = GT_MONTH_LABELS[m] || m;
+    fromSel.innerHTML += '<option value="' + m + '">' + label + '</option>';
+    toSel.innerHTML += '<option value="' + m + '">' + label + '</option>';
+  });
+
+  fromSel.addEventListener("change", function(e) { _gtOrdMonthFrom = e.target.value; _gtOrdPage = 1; renderGtOrders(); });
+  toSel.addEventListener("change", function(e) { _gtOrdMonthTo = e.target.value; _gtOrdPage = 1; renderGtOrders(); });
+  document.getElementById("gt-ord-date-from").addEventListener("change", function(e) { _gtOrdDateFrom = e.target.value; _gtOrdPage = 1; renderGtOrders(); });
+  document.getElementById("gt-ord-date-to").addEventListener("change", function(e) { _gtOrdDateTo = e.target.value; _gtOrdPage = 1; renderGtOrders(); });
+  document.getElementById("gt-ord-search").addEventListener("input", function(e) { _gtOrdSearch = e.target.value; _gtOrdPage = 1; renderGtOrders(); });
+  document.getElementById("gt-ord-reset").addEventListener("click", function() {
+    _gtOrdMonthFrom = "ALL"; _gtOrdMonthTo = "ALL"; _gtOrdDateFrom = ""; _gtOrdDateTo = ""; _gtOrdSearch = ""; _gtOrdPage = 1;
+    fromSel.value = "ALL"; toSel.value = "ALL";
+    document.getElementById("gt-ord-date-from").value = "";
+    document.getElementById("gt-ord-date-to").value = "";
+    document.getElementById("gt-ord-search").value = "";
+    renderGtOrders();
+  });
+  document.getElementById("gt-ord-prev").addEventListener("click", function() {
+    if (_gtOrdPage > 1) { _gtOrdPage--; renderGtOrders(); }
+  });
+  document.getElementById("gt-ord-next").addEventListener("click", function() {
+    var total = getFilteredOrdRows().length;
+    if (_gtOrdPage < Math.ceil(total / _gtOrdPageSize)) { _gtOrdPage++; renderGtOrders(); }
+  });
+  document.querySelectorAll(".gt-ord-th").forEach(function(th) {
+    th.addEventListener("click", function() {
+      var col = th.getAttribute("data-col");
+      if (_gtOrdSortCol === col) {
+        _gtOrdSortDir = _gtOrdSortDir === "asc" ? "desc" : "asc";
+      } else {
+        _gtOrdSortCol = col;
+        _gtOrdSortDir = col === "sales" ? "desc" : "asc";
+      }
+      _gtOrdPage = 1;
+      renderGtOrders();
+    });
+  });
+}
+
+function initGtFilters() {
 function initGtFilters() {
   // State dropdown
   var stateSet = {};
@@ -1242,8 +1394,11 @@ function initGtFilters() {
       b.classList.add("on");
       _gtFyFilter = b.getAttribute("data-fy");
       renderGtDashboard();
+      if (_gtCurrentView === "orders") renderGtOrders();
     });
   });
+
+  initGtOrdersView();
 }
 
 // ===== Tooltip Engine =====
