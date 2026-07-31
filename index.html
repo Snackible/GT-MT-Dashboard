@@ -217,10 +217,16 @@
             <h2>General Trade · Sales Pipeline</h2>
             <p id="gt-subtitle">FY 25–26 + FY 26–27 YTD</p>
           </div>
-          <div class="filters" id="gt-fy-filters">
-            <button class="fchip on" data-fy="ALL">All FYs</button>
-            <button class="fchip" data-fy="FY25-26">FY 25-26</button>
-            <button class="fchip" data-fy="FY26-27">FY 26-27</button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="filters" id="gt-fy-filters">
+              <button class="fchip on" data-fy="ALL">All FYs</button>
+              <button class="fchip" data-fy="FY25-26">FY 25-26</button>
+              <button class="fchip" data-fy="FY26-27">FY 26-27</button>
+            </div>
+            <div style="display:flex;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:3px;gap:2px;margin-left:12px">
+              <button id="gt-view-summary" onclick="switchGtView('summary')" style="padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;background:linear-gradient(180deg,#fff,#E5E7EB);color:#000;border:0;cursor:pointer">Summary</button>
+              <button id="gt-view-orders" onclick="switchGtView('orders')" style="padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;color:#9AA4B2;background:transparent;border:0;cursor:pointer">Orders</button>
+            </div>
           </div>
         </div>
 
@@ -326,6 +332,76 @@
             <div class="b2b-bar-labels" id="gt-monthly-labels"></div>
           </div>
         </div>
+
+        <!-- GT ORDERS VIEW -->
+        <div id="gt-orders-view" style="display:none">
+          <div style="background:#11161F;border:1px solid #1F2733;border-radius:12px;padding:14px 16px;margin-bottom:16px">
+            <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
+              <div style="display:flex;flex-direction:column;gap:5px">
+                <span style="font-size:10px;color:#5C6573;text-transform:uppercase;letter-spacing:.06em">Month</span>
+                <div style="display:flex;gap:6px;align-items:center">
+                  <select id="gt-ord-month-from" class="fchip" style="background:#161D29;padding:6px 10px;font-size:12px">
+                    <option value="ALL">From</option>
+                  </select>
+                  <span style="color:#5C6573;font-size:12px">→</span>
+                  <select id="gt-ord-month-to" class="fchip" style="background:#161D29;padding:6px 10px;font-size:12px">
+                    <option value="ALL">To</option>
+                  </select>
+                </div>
+              </div>
+              <div style="width:1px;height:36px;background:#1F2733;align-self:flex-end"></div>
+              <div style="display:flex;flex-direction:column;gap:5px">
+                <span style="font-size:10px;color:#5C6573;text-transform:uppercase;letter-spacing:.06em">Custom date range</span>
+                <div style="display:flex;gap:6px;align-items:center">
+                  <input type="date" id="gt-ord-date-from" class="fchip" style="background:#161D29;padding:6px 10px;font-size:12px;color-scheme:dark">
+                  <span style="color:#5C6573;font-size:12px">→</span>
+                  <input type="date" id="gt-ord-date-to" class="fchip" style="background:#161D29;padding:6px 10px;font-size:12px;color-scheme:dark">
+                </div>
+              </div>
+              <div style="margin-left:auto;align-self:flex-end">
+                <button id="gt-ord-reset" class="fchip" style="color:#5C6573">✕ Reset</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-bottom:14px;align-items:center">
+            <div style="flex:1;position:relative">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5C6573" stroke-width="2" style="position:absolute;left:11px;top:50%;transform:translateY(-50%)" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="text" id="gt-ord-search" placeholder="Search by client name..." style="width:100%;background:#11161F;border:1px solid #1F2733;border-radius:10px;padding:8px 12px 8px 34px;font-size:13px;color:#F5F7FA;outline:none;box-sizing:border-box">
+            </div>
+            <div id="gt-ord-count" style="font-size:12px;color:#5C6573;white-space:nowrap"></div>
+          </div>
+
+          <div style="background:rgba(11,15,20,.72);border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr style="background:rgba(255,255,255,.04)">
+                  <th class="gt-ord-th" data-col="ref" style="text-align:left;padding:10px 16px;color:#5C6573;font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:500;border-bottom:1px solid #1F2733;cursor:pointer">Ref No</th>
+                  <th class="gt-ord-th" data-col="date" style="text-align:left;padding:10px 16px;color:#5C6573;font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:500;border-bottom:1px solid #1F2733;cursor:pointer">Date</th>
+                  <th class="gt-ord-th" data-col="client" style="text-align:left;padding:10px 16px;color:#5C6573;font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:500;border-bottom:1px solid #1F2733;cursor:pointer">Client</th>
+                  <th class="gt-ord-th" data-col="poc" style="text-align:left;padding:10px 16px;color:#5C6573;font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:500;border-bottom:1px solid #1F2733;cursor:pointer">POC</th>
+                  <th class="gt-ord-th" data-col="sales" style="text-align:right;padding:10px 16px;color:#5C6573;font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:500;border-bottom:1px solid #1F2733;cursor:pointer">Sales</th>
+                </tr>
+              </thead>
+              <tbody id="gt-ord-tbody"></tbody>
+            </table>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
+            <div id="gt-ord-page-info" style="font-size:12px;color:#5C6573"></div>
+            <div style="display:flex;gap:6px">
+              <button id="gt-ord-prev" style="padding:6px 14px;background:#11161F;border:1px solid #1F2733;border-radius:8px;font-size:12px;color:#5C6573;cursor:pointer">← Prev</button>
+              <button id="gt-ord-next" style="padding:6px 14px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.3);border-radius:8px;font-size:12px;color:#A5F3FC;cursor:pointer">Next →</button>
+            </div>
+          </div>
+
+          <div style="margin-top:14px;padding-top:12px;border-top:1px solid #1F2733;display:flex;gap:16px;font-size:11px;color:#5C6573">
+            <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#A3E635;margin-right:5px"></span>FY 25-26</span>
+            <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#22D3EE;margin-right:5px"></span>FY 26-27</span>
+            <span style="margin-left:auto">— = no sales value</span>
+          </div>
+        </div>
+
       </div>
     </section>
   </div>
