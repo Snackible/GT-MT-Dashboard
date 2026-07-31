@@ -1426,4 +1426,4 @@ document.querySelectorAll('.data-points circle').forEach(circle => {
     e.target.style.fill = '#22D3EE';
   });
 });
-  
+}  
