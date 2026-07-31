@@ -1208,11 +1208,13 @@ var _gtCurrentView = "summary";
 
 function switchGtView(view) {
   _gtCurrentView = view;
-  var summaryEls = document.querySelectorAll(
-    "#gt-orders-view, .grid.row2, .grid.row2b, .section-gap"
-  );
   document.getElementById("gt-orders-view").style.display = view === "orders" ? "block" : "none";
 
+  // Hide/show summary sections
+  var summaryEls = document.querySelectorAll("#view-gt .grid.row2, #view-gt .grid.row2b, #view-gt .section-gap");
+  summaryEls.forEach(function(el) {
+    el.style.display = view === "orders" ? "none" : "";
+  });
   var summaryBtn = document.getElementById("gt-view-summary");
   var ordersBtn = document.getElementById("gt-view-orders");
   if (view === "orders") {
