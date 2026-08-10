@@ -532,6 +532,110 @@ function renderMtDashboard(data, zoneFilter) {
     }).join("");
   }
 
+// REPLACE WITH:
+  // Dynamic Monthly Trend Line Chart
+  const trendEl = document.getElementById("mt-trend-svg");
+  if (trendEl && data.monthly && data.monthly.length > 1) {
+    const monthly = data.monthly;
+    const W = 900, H = 180, padL = 48, padR = 16, padT = 16, padB = 32;
+    const chartW = W - padL - padR;
+    const chartH = H - padT - padB;
+    const maxS = Math.max(...monthly.map(m => m.sales));
+    const minS = Math.min(...monthly.map(m => m.sales));
+    const range = maxS - minS || 1;
+
+    const monthLabels = {
+      "2025-07":"Jul","2025-08":"Aug","2025-09":"Sep","2025-10":"Oct",
+      "2025-11":"Nov","2025-12":"Dec","2026-01":"Jan","2026-02":"Feb",
+      "2026-03":"Mar","2026-04":"Apr","2026-05":"May","2026-06":"Jun",
+      "2026-07":"Jul"
+    };
+    const yearSuffix = {
+      "2025-07":" 25","2025-08":"","2025-09":"","2025-10":"","2025-11":"","2025-12":"",
+      "2026-01":" 26","2026-02":"","2026-03":"","2026-04":"","2026-05":"","2026-06":"",
+      "2026-07":""
+    };
+
+    const pts = monthly.map((m, i) => ({
+      x: padL + (i / (monthly.length - 1)) * chartW,
+      y: padT + chartH - ((m.sales - minS) / range) * chartH,
+      sales: m.sales,
+      month: m.month
+    }));
+
+    const polyline = pts.map(p => `${p.x},${p.y}`).join(" ");
+
+    // Y-axis gridlines (3 levels)
+    const gridVals = [minS, (minS + maxS) / 2, maxS];
+    const grids = gridVals.map(v => {
+      const y = padT + chartH - ((v - minS) / range) * chartH;
+      const label = v >= 100000 ? "₹"+(v/100000).toFixed(1)+"L" : "₹"+Math.round(v/1000)+"K";
+      return `<line x1="${padL}" x2="${W - padR}" y1="${y}" y2="${y}" stroke="#1F2733" stroke-width="1"/>
+              <text x="${padL - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#5C6573">${label}</text>`;
+    }).join("");
+
+    // X-axis labels
+    const xLabels = pts.map(p => {
+      const label = (monthLabels[p.month] || p.month) + (yearSuffix[p.month] || "");
+      return `<text x="${p.x}" y="${H - 4}" text-anchor="middle" font-size="10" fill="#5C6573">${label}</text>`;
+    }).join("");
+
+    // Area fill
+    const areaPath = `M${pts[0].x},${padT + chartH} ` +
+      pts.map(p => `L${p.x},${p.y}`).join(" ") +
+      ` L${pts[pts.length-1].x},${padT + chartH} Z`;
+
+    // Dots with tooltips
+    const dots = pts.map((p, i) => {
+      const prev = i > 0 ? monthly[i-1].sales : null;
+      const pct = prev ? (((p.sales - prev) / prev) * 100).toFixed(1) : null;
+      const fmtVal = p.sales >= 100000 ? "₹"+(p.sales/100000).toFixed(2)+"L" : "₹"+Math.round(p.sales).toLocaleString("en-IN");
+      const label = (monthLabels[p.month] || p.month) + (yearSuffix[p.month] || " 25");
+      const pctStr = pct !== null ? (pct >= 0 ? `+${pct}%` : `${pct}%`) : "";
+      return `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#22D3EE" stroke="#0A0F1A" stroke-width="2"
+        class="trend-dot"
+        data-val="${fmtVal}" data-month="${label}" data-pct="${pctStr}"/>`;
+    }).join("");
+
+    const totalLabel = data.kpis.netSalesFormatted + " across " + monthly.length + " months";
+
+    trendEl.innerHTML = `
+      <text x="0" y="-8" font-size="12" fill="#F5F7FA" font-weight="600">${totalLabel}</text>
+      <defs>
+        <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#22D3EE" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      ${grids}
+      <path d="${areaPath}" fill="url(#trendGrad)"/>
+      <polyline points="${polyline}" fill="none" stroke="#22D3EE" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}
+      ${xLabels}`;
+
+    // Tooltip
+    trendEl.querySelectorAll('.trend-dot').forEach(dot => {
+      dot.addEventListener('mouseenter', function(e) {
+        const tip = document.getElementById('spark-tip') || document.createElement('div');
+        tip.id = 'spark-tip';
+        tip.style.cssText = 'position:fixed;background:#11161F;border:1px solid #1F2733;border-radius:10px;padding:10px 14px;font-size:12px;color:#F5F7FA;pointer-events:none;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.6)';
+        tip.innerHTML = `<div style="font-size:11px;color:#9AA4B2;margin-bottom:4px">${this.dataset.month}</div>
+          <div style="font-size:16px;font-weight:600;margin-bottom:4px">${this.dataset.val}</div>
+          <div style="font-size:12px;color:${this.dataset.pct?.startsWith('-') ? '#F87171' : '#34D399'}">${this.dataset.pct}</div>`;
+        document.body.appendChild(tip);
+        tip.style.display = 'block';
+      });
+      dot.addEventListener('mousemove', function(e) {
+        const tip = document.getElementById('spark-tip');
+        if (tip) { tip.style.left = (e.clientX+14)+'px'; tip.style.top = (e.clientY-40)+'px'; }
+      });
+      dot.addEventListener('mouseleave', function() {
+        const tip = document.getElementById('spark-tip');
+        if (tip) tip.style.display = 'none';
+      });
+    });
+  }
+
   // States Table
   const statusColor = (v, stores) => {
     const vel = v.sales / (stores || 1);
