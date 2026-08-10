@@ -103,46 +103,8 @@
         <div class="grid row2">
           <div class="card big">
             <h3>Monthly Sales Trend</h3>
-            <div class="lead num">₹8.32L <span style="font-size:13px;color:var(--text-1);font-weight:400">across 11 months</span></div>
-            <svg viewBox="0 0 720 240" width="100%" height="240" preserveAspectRatio="none" style="overflow:visible">
-              <defs>
-  <linearGradient id="area" x1="0" x2="0" y1="0" y2="1">
-    <stop offset="0" stop-color="#22D3EE" stop-opacity=".70"/>
-    <stop offset="1" stop-color="#22D3EE" stop-opacity=".05"/>
-  </linearGradient>
-  <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
-    <feGaussianBlur stdDeviation="4" result="blur" />
-    <feMerge>
-      <feMergeNode in="blur"/>
-      <feMergeNode in="SourceGraphic"/>
-    </feMerge>
-  </filter>
-</defs>
-              <g stroke="#1F2733" stroke-width="1">
-                <line x1="0" y1="40" x2="720" y2="40"/><line x1="0" y1="100" x2="720" y2="100"/><line x1="0" y1="160" x2="720" y2="160"/><line x1="0" y1="220" x2="720" y2="220"/>
-              </g>
-              <path d="M 32,199 L 100,40 L 168,77 L 236,79 L 304,101 L 372,96 L 440,126 L 508,148 L 576,138 L 644,111 L 712,101 L 712,220 L 32,220 Z" fill="url(#area)"/>
-              <path d="M 32,199 L 100,40 L 168,77 L 236,79 L 304,101 L 372,96 L 440,126 L 508,148 L 576,138 L 644,111 L 712,101" fill="none" stroke="#22D3EE" stroke-width="2" filter="url(#neon-glow)" stroke-linecap="round" stroke-linejoin="round"/>
-              <g class="data-points" fill="#22D3EE" stroke="#0B0F14" stroke-width="2" cursor="crosshair">
-                <circle cx="32" cy="199" r="6" data-val="₹14.5K" data-month="July"/>
-                <circle cx="100" cy="40" r="6" data-val="₹1.24L" data-month="August"/>
-                <circle cx="168" cy="77" r="6" data-val="₹99.0K" data-month="September"/>
-                <circle cx="236" cy="79" r="6" data-val="₹97.5K" data-month="October"/>
-                <circle cx="304" cy="101" r="6" data-val="₹81.9K" data-month="November"/>
-                <circle cx="372" cy="96" r="6" data-val="₹85.8K" data-month="December"/>
-                <circle cx="440" cy="126" r="6" data-val="₹64.9K" data-month="January"/>
-                <circle cx="508" cy="148" r="6" data-val="₹49.4K" data-month="February"/>
-                <circle cx="576" cy="138" r="6" data-val="₹57.0K" data-month="March"/>
-                <circle cx="644" cy="111" r="6" data-val="₹75.4K" data-month="April"/>
-                <circle cx="712" cy="101" r="6" data-val="₹82.1K" data-month="May"/>
-              </g>
-              <g fill="#5C6573" font-size="10" font-family="Geist Mono" text-anchor="middle">
-                <text x="32" y="236">Jul</text><text x="100" y="236">Aug</text><text x="168" y="236">Sep</text><text x="236" y="236">Oct</text><text x="304" y="236">Nov</text><text x="372" y="236">Dec</text><text x="440" y="236">Jan</text><text x="508" y="236">Feb</text><text x="576" y="236">Mar</text><text x="644" y="236">Apr</text><text x="712" y="236">May</text>
-              </g>
-              <g fill="#5C6573" font-size="10" font-family="Geist Mono">
-                <text x="0" y="44">₹1.25L</text><text x="0" y="104">₹85K</text><text x="0" y="164">₹45K</text>
-              </g>
-            </svg>
+            <div class="lead num" id="mt-trend-label"></div>
+            <svg id="mt-trend-svg" viewBox="0 -20 900 200" width="100%" height="200" preserveAspectRatio="none" style="overflow:visible;display:block"></svg>
             <div class="legend"><span><i style="background:#22D3EE"></i>Net sales</span></div>
             <div style="margin-top:24px">
               <div style="font-size:12px;color:var(--text-2);margin-bottom:12px;font-weight:500">Sales by month</div>
