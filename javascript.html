@@ -390,12 +390,25 @@ function renderMtDashboard(data, zoneFilter) {
     return `<div class="zoneitem ${zClass[i]}"><span class="lbl">${zone.charAt(0)+zone.slice(1).toLowerCase()}</span><div class="zonebar"><div style="width:${width}"></div></div><span class="val num">${val}<span class="pct">${z.pct}%</span></span></div>`;
   }).join('');
 
-  // SKUs
+  // SKUs (merge duplicate listings caused by inconsistent naming, e.g. "Nacho Jowar Cheese Puffs" == "Nacho Cheese Puffs")
   if (data.topSkus) {
-    document.getElementById('mt-skus').innerHTML = data.topSkus.map((s, i) => {
-      const name = s.name.replace(/SNACKIBLE\s*/i,'').replace(/\b(\w)/g,c=>c.toUpperCase()).slice(0,35);
+    const skuMap = new Map();
+    data.topSkus.forEach(s => {
+      const key = s.name.replace(/SNACKIBLE\s*/i,'').replace(/\bNCHO\b/i,'NACHO').replace(/\bJOWAR\s+/i,'').trim().toUpperCase();
+      if (skuMap.has(key)) {
+        const m = skuMap.get(key);
+        m.sales += s.sales; m.qty += s.qty;
+      } else {
+        skuMap.set(key, { name: key, sales: s.sales, qty: s.qty });
+      }
+    });
+    const mergedSkus = Array.from(skuMap.values()).sort((a, b) => b.sales - a.sales);
+    const maxSkuSales = mergedSkus.length ? mergedSkus[0].sales : 1;
+    document.getElementById('mt-skus').innerHTML = mergedSkus.slice(0, 8).map((s, i) => {
+      const name = s.name.replace(/\b(\w)/g,c=>c.toUpperCase()).slice(0,35);
       const val = s.sales >= 100000 ? "₹"+(s.sales/100000).toFixed(2)+"L" : "₹"+Math.round(s.sales).toLocaleString('en-IN');
-      return `<div class="skurow"><span class="rank">${String(i+1).padStart(2,'0')}</span><span class="skuname">${name}</span><div class="skubar"><div style="width:${s.pctOfTop}%"></div></div><span class="skuval">${val}</span></div>`;
+      const pct = Math.round(s.sales / maxSkuSales * 100);
+      return `<div class="skurow"><span class="rank">${String(i+1).padStart(2,'0')}</span><span class="skuname">${name}</span><div class="skubar"><div style="width:${pct}%"></div></div><span class="skuval">${val}</span></div>`;
     }).join('');
   }
 

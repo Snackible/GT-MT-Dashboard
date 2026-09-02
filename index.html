@@ -20,6 +20,7 @@
     <div class="seg" id="dashboard-tabs">
       <button class="on" onclick="switchTab('mt')">Modern Trade</button>
       <button onclick="switchTab('gt')">GT Sales</button>
+      <button onclick="switchTab('rtv')">RTV</button>
       <button onclick="switchTab('inbound')">Inbound Leads</button>
     </div>
   </div>
@@ -123,7 +124,7 @@
 
         <div class="grid row2b">
           <div class="card">
-            <div class="card-head"><span class="card-title">Top SKUs · by value</span><span class="card-meta">11-mo cumulative</span></div>
+            <div class="card-head"><span class="card-title">Top SKUs · by value</span><span class="card-meta">13-mo cumulative</span></div>
             <div class="skulist" id="mt-skus"></div>
           </div>
           <div class="card">
@@ -152,6 +153,19 @@
 
         <div class="section-gap"></div>
 
+        <div class="card big">
+          <div class="card-head">
+            <span class="card-title">Store Sales Trend</span>
+            <select id="mt-store-trend-select" class="fchip" style="background:var(--panel-2);border:1px solid var(--line);font-size:11px;padding:4px 8px;border-radius:8px;color:var(--text-1);cursor:pointer;min-width:240px"></select>
+          </div>
+          <div class="lead num" id="mt-store-trend-label"></div>
+          <svg id="mt-store-trend-svg" viewBox="0 -20 900 200" width="100%" height="200" preserveAspectRatio="none" style="overflow:visible;display:block"></svg>
+          <div class="legend"><span><i style="background:#A78BFA"></i>Store sales, month on month</span></div>
+          <div style="font-size:11px;color:var(--text-2);margin-top:8px">Showing the top 10 stores by cumulative value — full store list requires a backend update.</div>
+        </div>
+
+        <div class="section-gap"></div>
+
         <div class="grid row2b">
           <div class="card">
             <div class="card-head"><span class="card-title">Category Mix</span><span class="card-meta">by value</span></div>
@@ -165,6 +179,29 @@
               <tbody id="mt-states"></tbody>
             </table>
           </div>
+        </div>
+
+        <div class="section-gap"></div>
+
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">City-Level Sales &amp; Fill Rate</span>
+            <span class="card-meta">fill rate pending data integration</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+            <input type="text" id="mt-city-search" placeholder="Filter by city..." style="flex:1;max-width:280px;background:var(--panel-1);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text-1);outline:none;box-sizing:border-box">
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th class="mt-city-th on" data-col="name" data-dir="asc" style="cursor:pointer">City ⇅</th>
+                <th class="mt-city-th" data-col="stores" data-dir="desc" style="text-align:right;cursor:pointer">Stores ⇅</th>
+                <th class="mt-city-th" data-col="sales" data-dir="desc" style="text-align:right;cursor:pointer">Sales ⇅</th>
+                <th style="text-align:right">Fill Rate</th>
+              </tr>
+            </thead>
+            <tbody id="mt-city-fillrate"></tbody>
+          </table>
         </div>
       </div>
     </section>
@@ -364,6 +401,79 @@
           </div>
         </div>
 
+      </div>
+    </section>
+  </div>
+
+  <div id="view-rtv" style="display:none;">
+    <section class="data">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <h2>Returns to Vendor · RTV</h2>
+            <p>Store &amp; SKU-level return tracking</p>
+          </div>
+        </div>
+
+        <div class="filters" style="margin-bottom:20px;flex-wrap:wrap;gap:8px;align-items:center">
+          <div style="display:flex;gap:6px;align-items:center;padding-right:10px;border-right:1px solid var(--line)">
+            <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Store</span>
+            <select id="rtv-store-filter" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px" disabled>
+              <option value="ALL">All stores</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;padding-right:10px;border-right:1px solid var(--line)">
+            <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Zone</span>
+            <select id="rtv-zone-filter" class="fchip" style="background:var(--panel-1);cursor:pointer;padding:7px 10px" disabled>
+              <option value="ALL">All zones</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Date</span>
+            <input type="date" class="fchip" style="background:var(--panel-1);padding:7px 10px;color-scheme:dark" disabled>
+            <span style="color:var(--text-2);font-size:12px">→</span>
+            <input type="date" class="fchip" style="background:var(--panel-1);padding:7px 10px;color-scheme:dark" disabled>
+          </div>
+          <span style="font-size:12px;color:var(--text-2);margin-left:auto">Filters activate once RTV data is connected</span>
+        </div>
+
+        <div class="card" style="text-align:center;padding:48px 24px">
+          <div style="font-size:14px;color:var(--text-1);font-weight:600;margin-bottom:8px">RTV data not connected yet</div>
+          <div style="font-size:13px;color:var(--text-2);max-width:520px;margin:0 auto;line-height:1.6">
+            This tab is wired up and ready — once RTV rows are added to the source sheet and exposed via the Apps Script backend, return volumes, reasons, and store/SKU-level RTV rates will populate here automatically.
+          </div>
+        </div>
+
+        <div class="section-gap"></div>
+
+        <div class="grid row4">
+          <div class="card">
+            <div class="card-head"><span class="card-title">Total RTV Value</span><span class="card-meta">pending</span></div>
+            <div class="kpi-val num">—</div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">RTV Qty</span><span class="card-meta">pending</span></div>
+            <div class="kpi-val num">—</div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">RTV Rate</span><span class="card-meta">% of dispatched</span></div>
+            <div class="kpi-val num">—</div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Top Return Reason</span><span class="card-meta">pending</span></div>
+            <div class="kpi-val num" style="font-size:16px">—</div>
+          </div>
+        </div>
+
+        <div class="section-gap"></div>
+
+        <div class="card">
+          <div class="card-head"><span class="card-title">RTV by Store</span><span class="card-meta">awaiting data</span></div>
+          <table>
+            <thead><tr><th>Store</th><th style="text-align:right">Qty Returned</th><th style="text-align:right">RTV Value</th><th>Top Reason</th><th style="text-align:right">Date</th></tr></thead>
+            <tbody><tr><td colspan="5" style="text-align:center;color:var(--text-2);padding:24px 0">No RTV data yet</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </section>
   </div>

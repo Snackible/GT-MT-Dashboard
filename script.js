@@ -74,6 +74,11 @@ let _inboundLoaded = false;
 let _mtMonths = "ALL";
 let _mtZone = "ALL";
 
+// Store Sales Trend + City-Level Sales & Fill Rate state (frontend-only, no backend dependency)
+let _mtCityStates = [];
+let _mtCitySort = { col: "sales", dir: "desc" };
+let _mtCitySearch = "";
+
 const MT_PERIOD_OPTIONS = {
   yearly: [
     { label: "FY 25-26", value: "2025-07,2025-08,2025-09,2025-10,2025-11,2025-12,2026-01,2026-02,2026-03" },
@@ -158,6 +163,23 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("mt-zone-select").addEventListener("change", function() {
     _mtZone = this.value;
     if (_mtCachedData) renderMtDashboard(_mtCachedData, _mtZone);
+  });
+
+  // City-Level Sales & Fill Rate — search + sortable headers (editable, frontend-only)
+  document.getElementById('mt-city-search')?.addEventListener('input', function() {
+    _mtCitySearch = this.value;
+    renderCityFillRate();
+  });
+  document.querySelectorAll('.mt-city-th').forEach(th => {
+    th.addEventListener('click', function() {
+      const col = this.dataset.col;
+      _mtCitySort = (_mtCitySort.col === col)
+        ? { col, dir: _mtCitySort.dir === 'asc' ? 'desc' : 'asc' }
+        : { col, dir: col === 'name' ? 'asc' : 'desc' };
+      document.querySelectorAll('.mt-city-th').forEach(t => t.classList.remove('on'));
+      this.classList.add('on');
+      renderCityFillRate();
+    });
   });
 });
 // ===== Inbound date filtering state =====
@@ -367,8 +389,9 @@ document.getElementById('inbound-reset-dates')?.addEventListener('click', () => 
   const buttons = document.querySelectorAll('#dashboard-tabs button');
   buttons[0].classList.toggle('on', view === 'mt');
   buttons[1].classList.toggle('on', view === 'gt');
-  buttons[2].classList.toggle('on', view === 'inbound');
-  
+  buttons[2].classList.toggle('on', view === 'rtv');
+  buttons[3].classList.toggle('on', view === 'inbound');
+
   // Toggle branding dot color
   const dot = document.getElementById('nav-dot');
   if(view === 'inbound') {
@@ -378,6 +401,10 @@ document.getElementById('inbound-reset-dates')?.addEventListener('click', () => 
   } else if(view === 'gt') {
     dot.style.background = '#A3E635';
     dot.style.boxShadow = '0 0 0 3px rgba(163,230,53,.18),0 0 12px rgba(163,230,53,.6)';
+  } else if(view === 'rtv') {
+    document.getElementById('particles').style.opacity = '0';
+    dot.style.background = '#F87171';
+    dot.style.boxShadow = '0 0 0 3px rgba(248,113,113,.18),0 0 12px rgba(248,113,113,.6)';
   } else {
     document.getElementById('particles').style.opacity = '1';
     dot.style.background = '#34D399';
@@ -387,6 +414,7 @@ document.getElementById('inbound-reset-dates')?.addEventListener('click', () => 
   // Toggle View Containers
   document.getElementById('view-mt').style.display = view === 'mt' ? 'block' : 'none';
   document.getElementById('view-gt').style.display = view === 'gt' ? 'block' : 'none';
+  document.getElementById('view-rtv').style.display = view === 'rtv' ? 'block' : 'none';
   document.getElementById('view-inbound').style.display = view === 'inbound' ? 'block' : 'none';
   // Load inbound data if clicked for the first time
   if (view === 'gt' && !_gtLoaded) {
@@ -479,12 +507,25 @@ function renderMtDashboard(data, zoneFilter) {
     return `<div class="zoneitem ${zClass[i]}"><span class="lbl">${zone.charAt(0)+zone.slice(1).toLowerCase()}</span><div class="zonebar"><div style="width:${width}"></div></div><span class="val num">${val}<span class="pct">${z.pct}%</span></span></div>`;
   }).join('');
 
-  // SKUs
+  // SKUs (merge duplicate listings caused by inconsistent naming, e.g. "Nacho Jowar Cheese Puffs" == "Nacho Cheese Puffs")
   if (data.topSkus) {
-    document.getElementById('mt-skus').innerHTML = data.topSkus.map((s, i) => {
-      const name = s.name.replace(/SNACKIBLE\s*/i,'').replace(/\b(\w)/g,c=>c.toUpperCase()).slice(0,35);
+    const skuMap = new Map();
+    data.topSkus.forEach(s => {
+      const key = s.name.replace(/SNACKIBLE\s*/i,'').replace(/\bNCHO\b/i,'NACHO').replace(/\bJOWAR\s+/i,'').trim().toUpperCase();
+      if (skuMap.has(key)) {
+        const m = skuMap.get(key);
+        m.sales += s.sales; m.qty += s.qty;
+      } else {
+        skuMap.set(key, { name: key, sales: s.sales, qty: s.qty });
+      }
+    });
+    const mergedSkus = Array.from(skuMap.values()).sort((a, b) => b.sales - a.sales);
+    const maxSkuSales = mergedSkus.length ? mergedSkus[0].sales : 1;
+    document.getElementById('mt-skus').innerHTML = mergedSkus.slice(0, 8).map((s, i) => {
+      const name = s.name.replace(/\b(\w)/g,c=>c.toUpperCase()).slice(0,35);
       const val = s.sales >= 100000 ? "₹"+(s.sales/100000).toFixed(2)+"L" : "₹"+Math.round(s.sales).toLocaleString('en-IN');
-      return `<div class="skurow"><span class="rank">${String(i+1).padStart(2,'0')}</span><span class="skuname">${name}</span><div class="skubar"><div style="width:${s.pctOfTop}%"></div></div><span class="skuval">${val}</span></div>`;
+      const pct = Math.round(s.sales / maxSkuSales * 100);
+      return `<div class="skurow"><span class="rank">${String(i+1).padStart(2,'0')}</span><span class="skuname">${name}</span><div class="skubar"><div style="width:${pct}%"></div></div><span class="skuval">${val}</span></div>`;
     }).join('');
   }
 
@@ -648,6 +689,153 @@ function renderMtDashboard(data, zoneFilter) {
       return `<tr><td><span class="statusdot ${sc}"></span>${s.name}</td><td class="num">${s.stores}</td><td class="num">${sales}</td><td class="num">${s.velocity}</td></tr>`;
     }).join('');
   }
+
+  // Store Sales Trend (month-on-month, per store)
+  if (data.topStores && data.topStores.length) {
+    const trendSelect = document.getElementById('mt-store-trend-select');
+    if (trendSelect) {
+      const optionsHtml = data.topStores.map((s, i) => {
+        const label = s.name.replace(/\b(\w)/g,c=>c.toUpperCase()).slice(0,45);
+        return `<option value="${i}">${label}</option>`;
+      }).join('');
+      if (trendSelect.innerHTML !== optionsHtml) trendSelect.innerHTML = optionsHtml;
+      const prevVal = Number(trendSelect.value);
+      const selIdx = (!isNaN(prevVal) && prevVal < data.topStores.length) ? prevVal : 0;
+      trendSelect.value = String(selIdx);
+      renderStoreTrend(data.topStores[selIdx], data.monthly);
+      trendSelect.onchange = function() {
+        renderStoreTrend(data.topStores[Number(this.value)], data.monthly);
+      };
+    }
+  }
+
+  // City-Level Sales & Fill Rate (fill rate column is a placeholder until that data is connected)
+  _mtCityStates = data.states || [];
+  renderCityFillRate();
+}
+
+function renderStoreTrend(store, allMonths) {
+  const svg = document.getElementById('mt-store-trend-svg');
+  const label = document.getElementById('mt-store-trend-label');
+  if (!svg || !store) return;
+
+  const months = (allMonths || []).map(m => m.month);
+  const monthlyMap = store.monthly || {};
+  const series = months.map(m => monthlyMap[m] || 0);
+
+  const W = 900, H = 180, padL = 48, padR = 16, padT = 16, padB = 32;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const maxS = Math.max(...series, 1);
+  const minS = Math.min(...series, 0);
+  const range = (maxS - minS) || 1;
+
+  const MONTH_LABELS = {
+    "2025-07":"Jul","2025-08":"Aug","2025-09":"Sep","2025-10":"Oct",
+    "2025-11":"Nov","2025-12":"Dec","2026-01":"Jan","2026-02":"Feb",
+    "2026-03":"Mar","2026-04":"Apr","2026-05":"May","2026-06":"Jun","2026-07":"Jul"
+  };
+  const YEAR_SUFFIX = {
+    "2025-07":" 25","2025-08":"","2025-09":"","2025-10":"","2025-11":"","2025-12":"",
+    "2026-01":" 26","2026-02":"","2026-03":"","2026-04":"","2026-05":"","2026-06":"","2026-07":""
+  };
+
+  const pts = months.map((m, i) => ({
+    x: padL + (months.length > 1 ? (i / (months.length - 1)) * chartW : 0),
+    y: padT + chartH - ((series[i] - minS) / range) * chartH,
+    val: series[i],
+    month: m
+  }));
+
+  const polyline = pts.map(p => `${p.x},${p.y}`).join(" ");
+  const gridVals = [minS, (minS + maxS) / 2, maxS];
+  const grids = gridVals.map(v => {
+    const y = padT + chartH - ((v - minS) / range) * chartH;
+    const lbl = v >= 100000 ? "₹"+(v/100000).toFixed(1)+"L" : "₹"+Math.round(v/1000)+"K";
+    return `<line x1="${padL}" x2="${W - padR}" y1="${y}" y2="${y}" stroke="#1F2733" stroke-width="1"/>
+            <text x="${padL - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#5C6573">${lbl}</text>`;
+  }).join("");
+  const xLabels = pts.map(p => {
+    const lbl = (MONTH_LABELS[p.month] || p.month) + (YEAR_SUFFIX[p.month] || "");
+    return `<text x="${p.x}" y="${H - 4}" text-anchor="middle" font-size="10" fill="#5C6573">${lbl}</text>`;
+  }).join("");
+  const areaPath = pts.length
+    ? `M${pts[0].x},${padT + chartH} ` + pts.map(p => `L${p.x},${p.y}`).join(" ") + ` L${pts[pts.length-1].x},${padT + chartH} Z`
+    : "";
+  const dots = pts.map((p, i) => {
+    const prev = i > 0 ? series[i-1] : null;
+    const pct = (prev !== null && prev > 0) ? (((p.val - prev) / prev) * 100).toFixed(1) : null;
+    const fmtVal = "₹" + (p.val >= 100000 ? (p.val/100000).toFixed(2)+"L" : Math.round(p.val).toLocaleString('en-IN'));
+    const lbl = (MONTH_LABELS[p.month] || p.month) + (YEAR_SUFFIX[p.month] || " 25");
+    const pctStr = pct !== null ? (pct >= 0 ? `+${pct}%` : `${pct}%`) : "";
+    return `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#A78BFA" stroke="#0A0F1A" stroke-width="2"
+      class="store-trend-dot" data-val="${fmtVal}" data-month="${lbl}" data-pct="${pctStr}"/>`;
+  }).join("");
+
+  const totalVal = series.reduce((a, b) => a + b, 0);
+  const totalFmt = "₹" + (totalVal >= 100000 ? (totalVal/100000).toFixed(2)+"L" : Math.round(totalVal).toLocaleString('en-IN'));
+  const storeName = store.name.replace(/\b(\w)/g,c=>c.toUpperCase());
+  if (label) label.textContent = `${storeName} · ${totalFmt} across ${months.length} months`;
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="storeTrendGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#A78BFA" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="#A78BFA" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${grids}
+    <path d="${areaPath}" fill="url(#storeTrendGrad)"/>
+    <polyline points="${polyline}" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}
+    ${xLabels}`;
+
+  svg.querySelectorAll('.store-trend-dot').forEach(dot => {
+    dot.addEventListener('mouseenter', function() {
+      const tip = document.getElementById('store-trend-tip') || document.createElement('div');
+      tip.id = 'store-trend-tip';
+      tip.style.cssText = 'position:fixed;background:#11161F;border:1px solid #1F2733;border-radius:10px;padding:10px 14px;font-size:12px;color:#F5F7FA;pointer-events:none;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.6)';
+      tip.innerHTML = `<div style="font-size:11px;color:#9AA4B2;margin-bottom:4px">${this.dataset.month}</div>
+        <div style="font-size:16px;font-weight:600;margin-bottom:4px">${this.dataset.val}</div>
+        <div style="font-size:12px;color:${this.dataset.pct?.startsWith('-') ? '#F87171' : '#34D399'}">${this.dataset.pct} vs prior month</div>`;
+      document.body.appendChild(tip);
+      tip.style.display = 'block';
+    });
+    dot.addEventListener('mousemove', function(e) {
+      const tip = document.getElementById('store-trend-tip');
+      if (tip) { tip.style.left = (e.clientX+14)+'px'; tip.style.top = (e.clientY-40)+'px'; }
+    });
+    dot.addEventListener('mouseleave', function() {
+      const tip = document.getElementById('store-trend-tip');
+      if (tip) tip.style.display = 'none';
+    });
+  });
+}
+
+// City-Level Sales & Fill Rate — editable client-side search + sort (fill rate itself awaits backend data)
+function renderCityFillRate() {
+  const tbody = document.getElementById('mt-city-fillrate');
+  if (!tbody) return;
+
+  let rows = _mtCityStates.filter(s => s.name.toLowerCase().includes(_mtCitySearch.toLowerCase()));
+  const { col, dir } = _mtCitySort;
+  rows = rows.slice().sort((a, b) => {
+    let av = a[col], bv = b[col];
+    if (typeof av === 'string') { av = av.toLowerCase(); bv = (bv || '').toLowerCase(); }
+    if (av < bv) return dir === 'asc' ? -1 : 1;
+    if (av > bv) return dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-2);padding:20px 0">No matching cities</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(s => {
+    const sales = s.sales >= 100000 ? "₹"+(s.sales/100000).toFixed(2)+"L" : "₹"+Math.round(s.sales).toLocaleString('en-IN');
+    return `<tr><td>${s.name}</td><td class="num">${s.stores}</td><td class="num">${sales}</td><td class="num" style="color:var(--text-2)">—</td></tr>`;
+  }).join('');
 }
 
 function renderStores(filteredStores2, monthly, zoneFilter) {

@@ -135,6 +135,9 @@ tr:last-child td{border-bottom:0}
 tr:hover td{background:var(--panel-2);color:var(--text)}
 td:first-child{color:var(--text);font-weight:500}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
+.mt-city-th{user-select:none}
+.mt-city-th.on{color:var(--cyan)}
+#mt-city-search:focus{border-color:var(--cyan)}
 .statusdot{width:6px;height:6px;border-radius:99px;display:inline-block;margin-right:8px;vertical-align:middle}
 .s-good{background:#34D399;box-shadow:0 0 0 3px rgba(52,211,153,.12)}
 .s-warn{background:#FBBF24;box-shadow:0 0 0 3px rgba(251,191,36,.12)}
