@@ -916,29 +916,44 @@ function renderStores(filteredStores2, monthly, zoneFilter) {
     }).join('');
 
     // Tooltip
-    const tip = document.createElement('div');
-    tip.id = 'spark-tip';
-    tip.style.cssText = 'position:fixed;display:none;background:#11161F;border:1px solid #1F2733;border-radius:10px;padding:10px 14px;font-size:12px;color:#F5F7FA;pointer-events:none;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.6);font-family:system-ui,sans-serif;min-width:120px';
-    document.body.appendChild(tip);
+    // PERF FIX: renderStores() runs on every zone/month-filter change. The old code
+    // created a brand-new #spark-tip div (appended to <body>, never removed) and
+    // attached a fresh mousemove/mouseleave listener to #mt-stores on every single
+    // call — both piled up without bound the longer someone filtered the Modern
+    // Trade store list, bloating the DOM and stacking duplicate handlers on every
+    // mouse move. Reuse the existing tip element and wire the listeners once.
+    let tip = document.getElementById('spark-tip');
+    if (!tip) {
+      tip = document.createElement('div');
+      tip.id = 'spark-tip';
+      tip.style.cssText = 'position:fixed;display:none;background:#11161F;border:1px solid #1F2733;border-radius:10px;padding:10px 14px;font-size:12px;color:#F5F7FA;pointer-events:none;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.6);font-family:system-ui,sans-serif;min-width:120px';
+      document.body.appendChild(tip);
+    }
 
-    document.getElementById('mt-stores').addEventListener('mousemove', function(e) {
-      const dot = e.target.closest('.spark-dot');
-      if (!dot) { tip.style.display = 'none'; return; }
-      const month = dot.dataset.month;
-      const val = dot.dataset.val;
-      const pct = dot.dataset.pct;
-      const col = dot.dataset.pctCol;
-      tip.innerHTML = `<div style="font-size:11px;color:#9AA4B2;margin-bottom:4px">${month}</div>
+    const storesEl = document.getElementById('mt-stores');
+    if (storesEl && !storesEl._sparkTooltipWired) {
+      storesEl.addEventListener('mousemove', function(e) {
+        const dot = e.target.closest('.spark-dot');
+        const liveTip = document.getElementById('spark-tip');
+        if (!dot || !liveTip) { if (liveTip) liveTip.style.display = 'none'; return; }
+        const month = dot.dataset.month;
+        const val = dot.dataset.val;
+        const pct = dot.dataset.pct;
+        const col = dot.dataset.pctCol;
+        liveTip.innerHTML = `<div style="font-size:11px;color:#9AA4B2;margin-bottom:4px">${month}</div>
         <div style="font-size:16px;font-weight:600;margin-bottom:6px">${val}</div>
         <div style="font-size:12px;color:${col};font-weight:500">${pct} vs prior month</div>`;
-      tip.style.display = 'block';
-      tip.style.left = (e.clientX + 14) + 'px';
-      tip.style.top = (e.clientY - 40) + 'px';
-    });
+        liveTip.style.display = 'block';
+        liveTip.style.left = (e.clientX + 14) + 'px';
+        liveTip.style.top = (e.clientY - 40) + 'px';
+      });
 
-    document.getElementById('mt-stores').addEventListener('mouseleave', function() {
-      tip.style.display = 'none';
-    });
+      storesEl.addEventListener('mouseleave', function() {
+        const liveTip = document.getElementById('spark-tip');
+        if (liveTip) liveTip.style.display = 'none';
+      });
+      storesEl._sparkTooltipWired = true;
+    }
   }
 }
 
@@ -1202,6 +1217,10 @@ var _gtDateFrom = "";
 var _gtDateTo = "";
 var GT = { ref:0, date:1, month:2, poc:3, client:4, sales:5, state:6, fy:7 };
 
+// Distributor-wise Sales table (full client list, not just top 8)
+var _gtDistSort = { key: "sales", dir: -1 };
+var _gtDistSearch = "";
+
 var GT_MONTH_LABELS = {
   "2025-04":"Apr 25","2025-05":"May 25","2025-06":"Jun 25","2025-07":"Jul 25",
   "2025-08":"Aug 25","2025-09":"Sep 25","2025-10":"Oct 25","2025-11":"Nov 25",
@@ -1270,6 +1289,12 @@ function aggregateGt(rows) {
     return { name: e[0], sales: e[1], orders: clientOrders[e[0]] || 0 };
   });
 
+  // Full distributor-wise breakdown (name, orders, sales/amount, avg order value)
+  var allClients = Object.entries(clientSales).sort(function(a,b) { return b[1] - a[1]; }).map(function(e) {
+    var ord = clientOrders[e[0]] || 0;
+    return { name: e[0], sales: e[1], orders: ord, aov: ord > 0 ? e[1] / ord : 0 };
+  });
+
   var topRepeat = Object.entries(clientOrders).filter(function(e) { return e[1] > 1; })
     .sort(function(a,b) { return b[1] - a[1]; }).slice(0, 5).map(function(e) {
       return { name: e[0], orders: e[1], sales: clientSales[e[0]] || 0 };
@@ -1289,7 +1314,7 @@ function aggregateGt(rows) {
     totalSales: totalSales, totalOrders: totalOrders, uniqueClients: uniqueClients,
     ordersWithSales: ordersWithSales, aov: aov, repeatClients: repeatClients,
     repeatPct: repeatPct, oneTime: uniqueClients - repeatClients,
-    topClients: topClients, topRepeat: topRepeat, pocList: pocList,
+    topClients: topClients, allClients: allClients, topRepeat: topRepeat, pocList: pocList,
     monthly: monthly, states: states
   };
 }
@@ -1297,6 +1322,33 @@ function aggregateGt(rows) {
 function fmtGt(v) {
   if (v >= 100000) return "₹" + (v / 100000).toFixed(2) + "L";
   return "₹" + Math.round(v).toLocaleString("en-IN");
+}
+
+function renderGtDistributors(d) {
+  var tbody = document.getElementById("gt-distributor-table");
+  if (!tbody) return; // markup not present, skip quietly
+
+  var q = _gtDistSearch.trim().toLowerCase();
+  var rows = (d.allClients || []).filter(function(c) {
+    return !q || c.name.toLowerCase().indexOf(q) !== -1;
+  });
+
+  var key = _gtDistSort.key, dir = _gtDistSort.dir;
+  rows = rows.slice().sort(function(a, b) {
+    var av = a[key], bv = b[key];
+    if (typeof av === "string") return av.localeCompare(bv) * dir;
+    return (av - bv) * dir;
+  });
+
+  tbody.innerHTML = rows.map(function(c) {
+    return '<tr><td>' + c.name + '</td>' +
+      '<td class="num">' + c.orders + '</td>' +
+      '<td class="num">' + fmtGt(c.sales) + '</td>' +
+      '<td class="num">' + fmtGt(c.aov) + '</td></tr>';
+  }).join("") || '<tr><td colspan="4" style="color:var(--text-2);padding:16px 0">No distributors match this filter</td></tr>';
+
+  var metaEl = document.getElementById("gt-distributor-meta");
+  if (metaEl) metaEl.textContent = rows.length + " distributor" + (rows.length === 1 ? "" : "s") + " · Gross Sales (col G)";
 }
 
 function renderGtDashboard() {
@@ -1401,17 +1453,26 @@ function renderGtDashboard() {
     }
 
     var svgEl = document.getElementById('gt-trend-svg');
-    svgEl.addEventListener('mousemove', function(e) {
-      var dot = e.target.closest('.gt-hover-dot');
-      if (!dot) { gtTip.style.display = 'none'; return; }
-      gtTip.innerHTML = '<div style="font-size:11px;color:#9AA4B2;margin-bottom:4px">' + dot.dataset.month + '</div>' +
-        '<div style="font-size:16px;font-weight:600;margin-bottom:6px">' + dot.dataset.val + '</div>' +
-        '<div style="font-size:12px;color:' + dot.dataset.pctCol + ';font-weight:500">' + dot.dataset.pct + ' vs prior month</div>';
-      gtTip.style.display = 'block';
-      gtTip.style.left = (e.clientX + 14) + 'px';
-      gtTip.style.top = (e.clientY - 40) + 'px';
-    });
-    svgEl.addEventListener('mouseleave', function() { gtTip.style.display = 'none'; });
+    // PERF FIX: renderGtDashboard() runs on every filter change (FY/state/month/date).
+    // These listeners use event delegation (closest('.gt-hover-dot')), so they only
+    // need to be attached once to the persistent <svg> — attaching them on every
+    // render (as before) stacked a duplicate mousemove/mouseleave handler on svgEl
+    // each time a filter changed, making the dashboard progressively slower to
+    // interact with the longer a session ran.
+    if (!svgEl._gtTooltipWired) {
+      svgEl.addEventListener('mousemove', function(e) {
+        var dot = e.target.closest('.gt-hover-dot');
+        if (!dot) { gtTip.style.display = 'none'; return; }
+        gtTip.innerHTML = '<div style="font-size:11px;color:#9AA4B2;margin-bottom:4px">' + dot.dataset.month + '</div>' +
+          '<div style="font-size:16px;font-weight:600;margin-bottom:6px">' + dot.dataset.val + '</div>' +
+          '<div style="font-size:12px;color:' + dot.dataset.pctCol + ';font-weight:500">' + dot.dataset.pct + ' vs prior month</div>';
+        gtTip.style.display = 'block';
+        gtTip.style.left = (e.clientX + 14) + 'px';
+        gtTip.style.top = (e.clientY - 40) + 'px';
+      });
+      svgEl.addEventListener('mouseleave', function() { gtTip.style.display = 'none'; });
+      svgEl._gtTooltipWired = true;
+    }
     document.getElementById("gt-trend-lead").innerHTML = fmtGt(d.totalSales) + ' <span style="font-size:13px;color:var(--text-1);font-weight:400">across ' + mon.length + ' months</span>';
     document.getElementById("gt-trend-legend").innerHTML = '<span><i style="background:#A3E635"></i>FY 25-26</span><span><i style="background:#22D3EE"></i>FY 26-27</span>';
   }
@@ -1485,6 +1546,9 @@ function renderGtDashboard() {
     var total = _gtRows.length;
     summaryEl.textContent = rows.length < total ? "Showing " + rows.length + " of " + total + " orders" : "Showing all " + rows.length + " orders";
   }
+
+  // Distributor-wise Sales (full table, not just top 8)
+  renderGtDistributors(d);
 }
 // ===== GT ORDERS VIEW =====
 var _gtOrdPage = 1;
@@ -1716,6 +1780,30 @@ function initGtFilters() {
       _gtFyFilter = b.getAttribute("data-fy");
       renderGtDashboard();
       if (_gtCurrentView === "orders") renderGtOrders();
+    });
+  });
+
+  // Distributor-wise Sales — search + sortable headers (wired once, initGtFilters
+  // itself only runs once per page load, guarded by !_gtLoaded above)
+  var distSearchEl = document.getElementById("gt-distributor-search");
+  if (distSearchEl) {
+    distSearchEl.addEventListener("input", function(e) {
+      _gtDistSearch = e.target.value;
+      renderGtDistributors(aggregateGt(getFilteredGtRows()));
+    });
+  }
+  document.querySelectorAll(".gt-dist-sort").forEach(function(th) {
+    th.addEventListener("click", function() {
+      var key = th.getAttribute("data-sort-key");
+      if (_gtDistSort.key === key) {
+        _gtDistSort.dir *= -1;
+      } else {
+        _gtDistSort.key = key;
+        _gtDistSort.dir = key === "name" ? 1 : -1;
+      }
+      document.querySelectorAll(".gt-dist-sort").forEach(function(h) { h.style.color = ""; });
+      th.style.color = "#F5F7FA";
+      renderGtDistributors(aggregateGt(getFilteredGtRows()));
     });
   });
 }

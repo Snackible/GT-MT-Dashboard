@@ -332,6 +332,32 @@
           </div>
         </div>
 
+        <div class="section-gap"></div>
+
+        <div class="card" id="gt-distributor-card">
+          <div class="card-head">
+            <span class="card-title">Distributor-wise Sales</span>
+            <span class="card-meta" id="gt-distributor-meta">by client · Gross Sales (col G)</span>
+          </div>
+          <div style="margin-bottom:12px">
+            <input type="text" id="gt-distributor-search" placeholder="Search distributor..."
+              class="fchip" style="background:var(--panel-1);width:100%;max-width:320px;cursor:text;text-align:left"/>
+          </div>
+          <div style="max-height:440px;overflow:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th data-sort-key="name" class="gt-dist-sort" style="cursor:pointer">Distributor</th>
+                  <th data-sort-key="orders" class="gt-dist-sort" style="text-align:right;cursor:pointer">Orders</th>
+                  <th data-sort-key="sales" class="gt-dist-sort" style="text-align:right;cursor:pointer">Sales</th>
+                  <th data-sort-key="aov" class="gt-dist-sort" style="text-align:right;cursor:pointer">Avg Order</th>
+                </tr>
+              </thead>
+              <tbody id="gt-distributor-table"></tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- GT ORDERS VIEW -->
         <div id="gt-orders-view" style="display:none">
           <div style="background:#11161F;border:1px solid #1F2733;border-radius:12px;padding:14px 16px;margin-bottom:16px">
