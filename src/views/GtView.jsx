@@ -5,6 +5,7 @@ import { aggregateGt, filterGtRows, GT } from "../lib/gt";
 import { TipBody, useTip } from "../components/Tip";
 import { Field, Kpi, LoadingBanner, MonthOptions } from "../components/ui";
 import NameWiseTable from "../components/NameWiseTable";
+import GeoDrill from "../components/GeoDrill";
 import { daysSince, fmtDmy } from "../lib/dates";
 
 const FY_CHIPS = [["ALL", "All FYs"], ["FY25-26", "FY 25-26"], ["FY26-27", "FY 26-27"]];
@@ -205,6 +206,10 @@ export default function GtView({ active, onLoading }) {
 
   const d = useMemo(() => aggregateGt(rows), [rows]);
   const k = useMemo(() => (view === "orders" ? aggregateGt(ordRows) : d), [view, ordRows, d]);
+  const geoRecords = useMemo(
+    () => rows.map((r) => ({ state: r[GT.state], city: r[GT.city], store: r[GT.client], sales: r[GT.sales] || 0, orders: 1 })),
+    [rows]
+  );
   const maxClient = d.topClients[0]?.sales || 1;
   const maxVol = Math.max(...d.monthly.map((m) => m.orders), 1);
   const ready = !!data;
@@ -369,6 +374,10 @@ export default function GtView({ active, onLoading }) {
                 </div>
               </div>
             </div>
+
+            <div className="section-gap" />
+
+            <GeoDrill title="Geography · GT" records={geoRecords} storeNoun="client" filename="gt-geography.csv" />
 
             <div className="section-gap" />
 

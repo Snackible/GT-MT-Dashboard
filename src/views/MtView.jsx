@@ -5,6 +5,7 @@ import LineTrend from "../components/LineTrend";
 import { TipBody, useTip } from "../components/Tip";
 import { Field, MonthOptions, Spinner } from "../components/ui";
 import NameWiseTable from "../components/NameWiseTable";
+import GeoDrill from "../components/GeoDrill";
 import { monthsBetween } from "../lib/dates";
 
 const PERIOD_OPTIONS = {
@@ -485,6 +486,16 @@ export default function MtView({ onLoading }) {
             </table>
           </div>
         </div>
+
+        <div className="section-gap" />
+
+        <GeoDrill
+          title="Geography · MT"
+          records={(view?.storeList || []).map((s) => ({ state: s.state, city: s.city, store: titleCase(s.name), sales: s.sales }))}
+          storeNoun="store"
+          filename="mt-geography.csv"
+          note="Covers the stores the backend sends (top stores by value)."
+        />
 
         <div className="section-gap" />
 
