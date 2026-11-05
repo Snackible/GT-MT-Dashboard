@@ -5,7 +5,6 @@ import { aggregateGt, filterGtRows, GT } from "../lib/gt";
 import { TipBody, useTip } from "../components/Tip";
 import { Field, Kpi, LoadingBanner, MonthOptions } from "../components/ui";
 
-const POC_COLORS = ["#22D3EE", "#A78BFA", "#F472B6", "#A3E635", "#FBBF24", "#34D399", "#F87171"];
 const FY_CHIPS = [["ALL", "All FYs"], ["FY25-26", "FY 25-26"], ["FY26-27", "FY 26-27"]];
 const fyColor = (month) => (month >= "2026-04" ? "#22D3EE" : "#A3E635");
 const PAGE_SIZE = 20;
@@ -236,7 +235,6 @@ export default function GtView({ active, onLoading }) {
 
   const d = useMemo(() => aggregateGt(rows), [rows]);
   const k = useMemo(() => (view === "orders" ? aggregateGt(ordRows) : d), [view, ordRows, d]);
-  const maxPoc = d.pocList[0]?.orders || 1;
   const maxClient = d.topClients[0]?.sales || 1;
   const maxVol = Math.max(...d.monthly.map((m) => m.orders), 1);
   const ready = !!data;
@@ -314,7 +312,7 @@ export default function GtView({ active, onLoading }) {
           <OrdersView rows={ordRows} months={months} ord={ord} setOrd={setOrd} page={page} setPage={setPage} sort={sort} setSort={setSort} />
         ) : (
           <>
-            <div className="grid row2">
+            <div className="grid" style={{ gridTemplateColumns: "1fr" }}>
               <div className="card big">
                 <h3>Monthly Sales Trend</h3>
                 <div className="lead num">
@@ -325,19 +323,6 @@ export default function GtView({ active, onLoading }) {
                 {d.monthly.length > 0 && (
                   <div className="legend"><span><i style={{ background: "#A3E635" }} />FY 25-26</span><span><i style={{ background: "#22D3EE" }} />FY 26-27</span></div>
                 )}
-              </div>
-              <div className="card big">
-                <h3>POC Performance</h3>
-                <div className="lead num">{ready ? `${d.pocList.length} reps` : "-"}</div>
-                <div className="zonelist">
-                  {d.pocList.slice(0, 7).map((p, i) => (
-                    <div key={p.name} className="zoneitem">
-                      <span className="lbl">{p.name}</span>
-                      <div className="zonebar"><div style={{ width: `${Math.round((p.orders / maxPoc) * 100)}%`, background: POC_COLORS[i % POC_COLORS.length] }} /></div>
-                      <span className="val num">{p.orders} <span className="pct">{fmtINR(p.sales)}</span></span>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
 
