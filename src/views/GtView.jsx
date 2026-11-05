@@ -4,6 +4,8 @@ import { fmtINR, monthLabel, monthShort, pctChange } from "../lib/format";
 import { aggregateGt, filterGtRows, GT } from "../lib/gt";
 import { TipBody, useTip } from "../components/Tip";
 import { Field, Kpi, LoadingBanner, MonthOptions } from "../components/ui";
+import NameWiseTable from "../components/NameWiseTable";
+import { daysSince, fmtDmy } from "../lib/dates";
 
 const FY_CHIPS = [["ALL", "All FYs"], ["FY25-26", "FY 25-26"], ["FY26-27", "FY 26-27"]];
 const fyColor = (month) => (month >= "2026-04" ? "#22D3EE" : "#A3E635");
@@ -64,51 +66,19 @@ function TrendChart({ monthly }) {
 }
 
 function DistributorTable({ clients }) {
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState({ key: "sales", dir: -1 });
-  const rows = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return clients
-      .filter((c) => !q || c.name.toLowerCase().includes(q))
-      .sort((a, b) => (typeof a[sort.key] === "string" ? a[sort.key].localeCompare(b[sort.key]) : a[sort.key] - b[sort.key]) * sort.dir);
-  }, [clients, search, sort]);
-  const toggle = (key) => setSort((s) => (s.key === key ? { key, dir: -s.dir } : { key, dir: key === "name" ? 1 : -1 }));
-  const th = (key, label, right) => (
-    <th className="sortable" style={{ textAlign: right ? "right" : undefined, color: sort.key === key ? "#F5F7FA" : undefined }} onClick={() => toggle(key)}>
-      {label}
-    </th>
+  const rows = useMemo(
+    () => clients.map((c) => ({ name: c.name, orders: c.orders, sales: c.sales, aov: c.aov, last: c.lastDate ? fmtDmy(c.lastDate) : "", idle: c.lastDate ? daysSince(c.lastDate) : null })),
+    [clients]
   );
   return (
-    <div className="card">
-      <div className="card-head">
-        <span className="card-title">Distributor-wise Sales</span>
-        <span className="card-meta">{rows.length} distributor{rows.length === 1 ? "" : "s"} · Gross Sales (col G)</span>
-      </div>
-      <div style={{ marginBottom: 12 }}>
-        <input className="fchip" style={{ background: "var(--panel-1)", width: "100%", maxWidth: 320, cursor: "text" }} placeholder="Search distributor..." value={search} onChange={(e) => setSearch(e.target.value)} />
-      </div>
-      <div style={{ maxHeight: 440, overflow: "auto" }}>
-        <table>
-          <thead>
-            <tr>{th("name", "Distributor")}{th("orders", "Orders", true)}{th("sales", "Sales", true)}{th("aov", "Avg Order", true)}</tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
-              <tr><td colSpan="4" style={{ color: "var(--text-2)", padding: "16px 0" }}>No distributors match this filter</td></tr>
-            ) : (
-              rows.map((c) => (
-                <tr key={c.name}>
-                  <td>{c.name}</td>
-                  <td className="num">{c.orders}</td>
-                  <td className="num">{fmtINR(c.sales)}</td>
-                  <td className="num">{fmtINR(c.aov)}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <NameWiseTable
+      title="Distributor-wise Sales"
+      nameLabel="Distributor"
+      noun="distributor"
+      metaNote="Gross Sales (col G)"
+      rows={rows}
+      filename={`gt-distributor-wise-sales-${new Date().toISOString().slice(0, 10)}.csv`}
+    />
   );
 }
 

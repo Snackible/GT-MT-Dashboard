@@ -274,3 +274,36 @@ th.sortable.on{color:var(--cyan)}
 .loading-banner{display:flex;align-items:center;justify-content:center;gap:12px;padding:28px;border:1px dashed var(--line);border-radius:12px;color:var(--text-1);font-size:13px;margin-bottom:16px}
 .seg button{display:inline-flex;align-items:center;gap:8px}
 .seg button .spinner{width:11px;height:11px;border-width:2px}
+
+/* ===== Name-wise tables: donut, outliers, drill-down ===== */
+.namewise-grid{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(220px,1fr);gap:28px;align-items:start}
+@media (max-width:900px){.namewise-grid{grid-template-columns:1fr}}
+.namewise-donut-title{font-size:12px;color:var(--text-2);margin-bottom:10px;font-weight:500}
+.donut-wrap{display:flex;flex-direction:column;gap:16px;align-items:center}
+.donut-svg{width:190px;height:190px}
+.donut-svg circle[stroke-dasharray]{cursor:pointer;transition:opacity .15s}
+.donut-svg circle[stroke-dasharray]:hover{opacity:.8}
+.donut-legend{width:100%;display:flex;flex-direction:column;gap:8px}
+.donut-legend > div{display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.donut-legend .lbl{display:flex;align-items:center;gap:8px;color:var(--text-1)}
+.donut-legend i{width:10px;height:10px;border-radius:2px;flex:none}
+.donut-legend .val{color:var(--text)}
+.outlier-strip{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.22);border-radius:12px;padding:12px 14px;margin-bottom:16px}
+.outlier-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:12px;color:var(--text-1);margin-bottom:10px}
+.outlier-head b{color:#FCA5A5;font-weight:600}
+.outlier-count{color:var(--text-2)}
+.outlier-toggle{margin-left:auto;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-1)}
+.outlier-chips{display:flex;flex-wrap:wrap;gap:6px}
+.outlier-chip{font-size:12px;color:var(--text);background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.28);border-radius:999px;padding:4px 10px}
+.outlier-chip b{color:#FCA5A5;margin-left:4px;font-weight:600}
+tr.row-outlier td{background:rgba(248,113,113,.05)}
+.geo-levels{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.geo-levels button:disabled{opacity:.4;cursor:not-allowed}
+.geo-row{cursor:pointer}
+.geo-caret{display:inline-block;width:14px;color:var(--text-2);font-size:10px}
+.geo-bar{height:6px;border-radius:3px;background:#161D29;min-width:80px;overflow:hidden}
+.geo-bar > div{height:100%;border-radius:3px}
+.geo-note{font-size:11px;color:var(--text-2);margin-top:10px}
+.rtv-status{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid}
+.rtv-status.ok{color:#34D399;border-color:rgba(52,211,153,.35);background:rgba(52,211,153,.08)}
+.rtv-status.due{color:#F87171;border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.08)}
