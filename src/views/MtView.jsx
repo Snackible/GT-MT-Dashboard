@@ -4,6 +4,8 @@ import { fmtINR, monthLabel, titleCase, pctChange } from "../lib/format";
 import LineTrend from "../components/LineTrend";
 import { TipBody, useTip } from "../components/Tip";
 import { Field, MonthOptions, Spinner } from "../components/ui";
+import NameWiseTable from "../components/NameWiseTable";
+import { monthsBetween } from "../lib/dates";
 
 const PERIOD_OPTIONS = {
   yearly: [
@@ -167,6 +169,37 @@ function CityTable({ states }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+// Name-wise store table. The MT feed has monthly sales per store (no order dates), so "last order" is the
+// last month with sales and "idle" is how many months that is behind the latest month that has any sales.
+function StoreNameWise({ stores, monthly }) {
+  const rows = useMemo(() => {
+    const keys = monthly.map((m) => m.month).sort();
+    const latest = [...monthly].sort((a, b) => (a.month < b.month ? -1 : 1)).filter((m) => m.sales > 0).pop()?.month;
+    return stores.map((s) => {
+      const last = keys.filter((k) => ((s.monthly || {})[k] || 0) > 0).pop();
+      return {
+        name: titleCase(s.name),
+        sales: s.sales,
+        last: last ? monthLabel(last) : "",
+        idle: last && latest ? Math.max(0, monthsBetween(last, latest)) : null,
+      };
+    });
+  }, [stores, monthly]);
+  return (
+    <NameWiseTable
+      title="Store-wise Sales"
+      nameLabel="Store"
+      noun="store"
+      metaNote="last order = last month with sales"
+      rows={rows}
+      idleUnit="months"
+      thresholds={[{ v: 1, label: "1+ month" }, { v: 2, label: "2+ months" }, { v: 3, label: "3+ months" }]}
+      defaultThreshold={1}
+      filename={`mt-store-wise-sales-${new Date().toISOString().slice(0, 10)}.csv`}
+    />
   );
 }
 
@@ -452,6 +485,10 @@ export default function MtView({ onLoading }) {
             </table>
           </div>
         </div>
+
+        <div className="section-gap" />
+
+        <StoreNameWise stores={view?.storeList || []} monthly={monthly} />
 
         <div className="section-gap" />
 
