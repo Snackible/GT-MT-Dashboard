@@ -1,4 +1,6 @@
-export const GT = { ref: 0, date: 1, month: 2, poc: 3, client: 4, sales: 5, state: 6, fy: 7 };
+// Indices 0-7 are what the backend sends today. 8-10 are filled by backend/orders.gs (Active Orders + OMS/BD join)
+// and are undefined until that is deployed, so everything reading them must tolerate a missing value.
+export const GT = { ref: 0, date: 1, month: 2, poc: 3, client: 4, sales: 5, state: 6, fy: 7, type: 8, channel: 9, city: 10 };
 
 export function filterGtRows(rows, f) {
   return rows.filter((r) => {
@@ -14,7 +16,7 @@ export function filterGtRows(rows, f) {
 
 export function aggregateGt(rows) {
   let totalSales = 0;
-  const clientSales = {}, clientOrders = {}, pocOrders = {}, pocSales = {};
+  const clientSales = {}, clientOrders = {}, clientLast = {}, pocOrders = {}, pocSales = {};
   const monthlySales = {}, monthlyOrders = {}, stateData = {};
 
   rows.forEach((r) => {
@@ -24,6 +26,8 @@ export function aggregateGt(rows) {
     if (c) {
       clientSales[c] = (clientSales[c] || 0) + s;
       clientOrders[c] = (clientOrders[c] || 0) + 1;
+      const d = r[GT.date];
+      if (d && (!clientLast[c] || d > clientLast[c])) clientLast[c] = d;
     }
     const p = r[GT.poc];
     if (p) {
@@ -50,7 +54,7 @@ export function aggregateGt(rows) {
   const byValue = Object.entries(clientSales).sort((a, b) => b[1] - a[1]);
   const allClients = byValue.map(([name, sales]) => {
     const orders = clientOrders[name] || 0;
-    return { name, sales, orders, aov: orders > 0 ? sales / orders : 0 };
+    return { name, sales, orders, aov: orders > 0 ? sales / orders : 0, lastDate: clientLast[name] || "" };
   });
 
   return {

@@ -4,8 +4,10 @@ import { fmtINR, monthLabel, monthShort, pctChange } from "../lib/format";
 import { aggregateGt, filterGtRows, GT } from "../lib/gt";
 import { TipBody, useTip } from "../components/Tip";
 import { Field, Kpi, LoadingBanner, MonthOptions } from "../components/ui";
+import NameWiseTable from "../components/NameWiseTable";
+import GeoDrill from "../components/GeoDrill";
+import { daysSince, fmtDmy } from "../lib/dates";
 
-const POC_COLORS = ["#22D3EE", "#A78BFA", "#F472B6", "#A3E635", "#FBBF24", "#34D399", "#F87171"];
 const FY_CHIPS = [["ALL", "All FYs"], ["FY25-26", "FY 25-26"], ["FY26-27", "FY 26-27"]];
 const fyColor = (month) => (month >= "2026-04" ? "#22D3EE" : "#A3E635");
 const PAGE_SIZE = 20;
@@ -65,51 +67,19 @@ function TrendChart({ monthly }) {
 }
 
 function DistributorTable({ clients }) {
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState({ key: "sales", dir: -1 });
-  const rows = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return clients
-      .filter((c) => !q || c.name.toLowerCase().includes(q))
-      .sort((a, b) => (typeof a[sort.key] === "string" ? a[sort.key].localeCompare(b[sort.key]) : a[sort.key] - b[sort.key]) * sort.dir);
-  }, [clients, search, sort]);
-  const toggle = (key) => setSort((s) => (s.key === key ? { key, dir: -s.dir } : { key, dir: key === "name" ? 1 : -1 }));
-  const th = (key, label, right) => (
-    <th className="sortable" style={{ textAlign: right ? "right" : undefined, color: sort.key === key ? "#F5F7FA" : undefined }} onClick={() => toggle(key)}>
-      {label}
-    </th>
+  const rows = useMemo(
+    () => clients.map((c) => ({ name: c.name, orders: c.orders, sales: c.sales, aov: c.aov, last: c.lastDate ? fmtDmy(c.lastDate) : "", idle: c.lastDate ? daysSince(c.lastDate) : null })),
+    [clients]
   );
   return (
-    <div className="card">
-      <div className="card-head">
-        <span className="card-title">Distributor-wise Sales</span>
-        <span className="card-meta">{rows.length} distributor{rows.length === 1 ? "" : "s"} · Gross Sales (col G)</span>
-      </div>
-      <div style={{ marginBottom: 12 }}>
-        <input className="fchip" style={{ background: "var(--panel-1)", width: "100%", maxWidth: 320, cursor: "text" }} placeholder="Search distributor..." value={search} onChange={(e) => setSearch(e.target.value)} />
-      </div>
-      <div style={{ maxHeight: 440, overflow: "auto" }}>
-        <table>
-          <thead>
-            <tr>{th("name", "Distributor")}{th("orders", "Orders", true)}{th("sales", "Sales", true)}{th("aov", "Avg Order", true)}</tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
-              <tr><td colSpan="4" style={{ color: "var(--text-2)", padding: "16px 0" }}>No distributors match this filter</td></tr>
-            ) : (
-              rows.map((c) => (
-                <tr key={c.name}>
-                  <td>{c.name}</td>
-                  <td className="num">{c.orders}</td>
-                  <td className="num">{fmtINR(c.sales)}</td>
-                  <td className="num">{fmtINR(c.aov)}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <NameWiseTable
+      title="Distributor-wise Sales"
+      nameLabel="Distributor"
+      noun="distributor"
+      metaNote="Gross Sales (col G)"
+      rows={rows}
+      filename={`gt-distributor-wise-sales-${new Date().toISOString().slice(0, 10)}.csv`}
+    />
   );
 }
 
@@ -209,7 +179,11 @@ function OrdersView({ rows, months, ord, setOrd, page, setPage, sort, setSort })
 export default function GtView({ active, onLoading }) {
   const { data, loading } = useLazyApi("gtData", active);
   useEffect(() => onLoading?.(loading), [loading, onLoading]);
-  const allRows = data?.rows || [];
+  // Once the backend tags orders with a channel (Active Orders > Order Type), the GT tab only shows GT orders.
+  const allRows = useMemo(() => {
+    const rows = data?.rows || [];
+    return rows.some((r) => r[GT.channel]) ? rows.filter((r) => r[GT.channel] === "GT") : rows;
+  }, [data]);
   const [filters, setFilters] = useState(INITIAL_FILTERS);
   const [view, setView] = useState("summary");
   const [ord, setOrd] = useState(INITIAL_ORD);
@@ -236,7 +210,10 @@ export default function GtView({ active, onLoading }) {
 
   const d = useMemo(() => aggregateGt(rows), [rows]);
   const k = useMemo(() => (view === "orders" ? aggregateGt(ordRows) : d), [view, ordRows, d]);
-  const maxPoc = d.pocList[0]?.orders || 1;
+  const geoRecords = useMemo(
+    () => rows.map((r) => ({ state: r[GT.state], city: r[GT.city], store: r[GT.client], sales: r[GT.sales] || 0, orders: 1 })),
+    [rows]
+  );
   const maxClient = d.topClients[0]?.sales || 1;
   const maxVol = Math.max(...d.monthly.map((m) => m.orders), 1);
   const ready = !!data;
@@ -314,7 +291,7 @@ export default function GtView({ active, onLoading }) {
           <OrdersView rows={ordRows} months={months} ord={ord} setOrd={setOrd} page={page} setPage={setPage} sort={sort} setSort={setSort} />
         ) : (
           <>
-            <div className="grid row2">
+            <div className="grid" style={{ gridTemplateColumns: "1fr" }}>
               <div className="card big">
                 <h3>Monthly Sales Trend</h3>
                 <div className="lead num">
@@ -325,19 +302,6 @@ export default function GtView({ active, onLoading }) {
                 {d.monthly.length > 0 && (
                   <div className="legend"><span><i style={{ background: "#A3E635" }} />FY 25-26</span><span><i style={{ background: "#22D3EE" }} />FY 26-27</span></div>
                 )}
-              </div>
-              <div className="card big">
-                <h3>POC Performance</h3>
-                <div className="lead num">{ready ? `${d.pocList.length} reps` : "-"}</div>
-                <div className="zonelist">
-                  {d.pocList.slice(0, 7).map((p, i) => (
-                    <div key={p.name} className="zoneitem">
-                      <span className="lbl">{p.name}</span>
-                      <div className="zonebar"><div style={{ width: `${Math.round((p.orders / maxPoc) * 100)}%`, background: POC_COLORS[i % POC_COLORS.length] }} /></div>
-                      <span className="val num">{p.orders} <span className="pct">{fmtINR(p.sales)}</span></span>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
 
@@ -414,6 +378,10 @@ export default function GtView({ active, onLoading }) {
                 </div>
               </div>
             </div>
+
+            <div className="section-gap" />
+
+            <GeoDrill title="Geography · GT" records={geoRecords} storeNoun="client" filename="gt-geography.csv" />
 
             <div className="section-gap" />
 
