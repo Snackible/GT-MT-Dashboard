@@ -40,7 +40,7 @@ export default function App() {
       {/* All views stay mounted so filters and loaded data survive tab switches. */}
       <div className="view" hidden={tab !== "mt"}><MtView onLoading={cbs.mt} /></div>
       <div className="view" hidden={tab !== "gt"}><GtView active={tab === "gt"} onLoading={cbs.gt} /></div>
-      <div className="view" hidden={tab !== "rtv"}><RtvView /></div>
+      <div className="view" hidden={tab !== "rtv"}><RtvView active={tab === "rtv"} onLoading={cbs.rtv} /></div>
       <div className="view" hidden={tab !== "inbound"}><InboundView active={tab === "inbound"} onLoading={cbs.inbound} /></div>
     </>
   );

@@ -179,7 +179,11 @@ function OrdersView({ rows, months, ord, setOrd, page, setPage, sort, setSort })
 export default function GtView({ active, onLoading }) {
   const { data, loading } = useLazyApi("gtData", active);
   useEffect(() => onLoading?.(loading), [loading, onLoading]);
-  const allRows = data?.rows || [];
+  // Once the backend tags orders with a channel (Active Orders > Order Type), the GT tab only shows GT orders.
+  const allRows = useMemo(() => {
+    const rows = data?.rows || [];
+    return rows.some((r) => r[GT.channel]) ? rows.filter((r) => r[GT.channel] === "GT") : rows;
+  }, [data]);
   const [filters, setFilters] = useState(INITIAL_FILTERS);
   const [view, setView] = useState("summary");
   const [ord, setOrd] = useState(INITIAL_ORD);
